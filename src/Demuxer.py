@@ -1,6 +1,7 @@
 import avpy
 import ctypes
 import threading
+import PacketWrapper
 
 class Demuxer(object):
     def __init__(self, address):
@@ -59,4 +60,4 @@ class Demuxer(object):
             print("Cannot read packet.")
             return None
 
-        return packet
+        return PacketWrapper.PacketWrapper(packet)

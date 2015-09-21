@@ -7,7 +7,7 @@ import time
 import avpy
 import config
 import StreamReader
-from src import CodeReader, Decoder
+import CodeReader
 
 SCANNER_STATE_CONNECT = 0
 SCANNER_STATE_READ = 1
@@ -20,7 +20,6 @@ class Scanner(object):
 
         self._streamAddress = streamAddress
         self._streamReader = StreamReader.StreamReader(self._streamAddress)
-        self._decoder = Decoder.Decoder()
         self._codeReader = CodeReader.CodeReader()
         self._run = threading.Event()
 
@@ -62,23 +61,19 @@ class Scanner(object):
                 print("Scanner._main_loop: State SCANNER_STATE_READ.")
                 print("Scanner._main_loop: frameI " + str(frameI))
 
-                packet = self._streamReader.read_video()
+                #read frame from stream
+                image = self._streamReader.read_image()
 
-                #cannot read, try it again later
-                if(packet == None):
-                    time.sleep(1)
-                    continue
+                if(image != None):
+                    frameI += 1
+                    if(frameI % config.SKIP_FRAMES):
 
-                image = self._decoder.decode(packet)
+                        ret, data = self._codeReader.read(image)
+                        if(ret == True):
+                            print(data)
+                        else:
+                            print("Scanner._main_loop: Frame " + str(frameI) + " hasnt readable QR code.")
 
-                if(image != None and frameI % config.SKIP_FRAMES):
-                    ret, data = self._codeReader.read(image)
-                    if(ret == True):
-                        print(data)
-                    else:
-                        sys.stderr.write(data)
-
-                frameI += 1
             else:
                 sys.stderr.write("Scanner._main_loop: Unkdnown state.\n")
                 return
