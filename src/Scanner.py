@@ -62,13 +62,15 @@ class Scanner(object):
                 print("Scanner._main_loop: frameI " + str(frameI))
 
                 #read frame from stream
-                image = self._streamReader.read_image()
-
-                if(image != None):
+                if(self._streamReader.read_image()):
                     frameI += 1
-                    if(frameI % config.SKIP_FRAMES):
+                    if(frameI % config.SKIP_FRAMES == 0):
 
-                        ret, data = self._codeReader.read(image)
+                        frame = self._streamReader.get_out_frame()
+                        if(not frame):
+                            continue
+
+                        ret, data = self._codeReader.read(frame)
                         if(ret == True):
                             print(data)
                         else:

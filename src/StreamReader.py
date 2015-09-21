@@ -12,6 +12,7 @@ class StreamReader(object):
     def __init__(self, address):
         self._demuxer = Demuxer.Demuxer(address)
         self._decoder = Decoder.Decoder()
+        self._lastFrame = None
         self._swsCtx = None
         self._swsFrame = None
         self._runRead = threading.Event()
@@ -47,19 +48,27 @@ class StreamReader(object):
             if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
                 continue
 
-            frame = self._decoder.decode(packet)
+            self._lastFrame = self._decoder.decode(packet)
 
             #first frames will probably not be decoded
-            if(not frame):
-                continue
-
-            #convert frame to PIL image
-            image = self._avFrame_2_PILImage(frame)
-
-            if(image):
-                return image
-
+            if(self._lastFrame):
+                return True
         return None
+
+    def get_out_frame(self):
+
+        if(not self._lastFrame):
+            return None
+
+        outSliceHeight = avpy.av.lib.sws_scale(self._swsCtx,
+                self._lastFrame.contents.data,
+                self._lastFrame.contents.linesize,
+                0,
+                self._decoder.codecCtx.contents.height,
+                self._swsFrame.contents.data,
+                self._swsFrame.contents.linesize)
+
+        return self._swsFrame
 
     def _start(self):
         while(self._runRead.is_set()):
@@ -77,7 +86,7 @@ class StreamReader(object):
             #create sws context
             width = self._decoder.codecCtx.contents.width
             height = self._decoder.codecCtx.contents.height
-            outPixFmt = avpy.av.lib.PIX_FMT_RGB24
+            outPixFmt = avpy.av.lib.PIX_FMT_GRAY8
             nullSwsCtx = ctypes.cast(None, ctypes.POINTER(avpy.av.lib.SwsContext))
             self._swsCtx = avpy.av.lib.sws_getCachedContext(
                     nullSwsCtx,
@@ -113,46 +122,3 @@ class StreamReader(object):
             self._swsFrame.contents.format = outPixFmt
 
             return True
-
-    def _avFrame_2_PILImage(self, frame):
-
-        outSliceHeight = avpy.av.lib.sws_scale(self._swsCtx,
-                frame.contents.data,
-                frame.contents.linesize,
-                0,
-                self._decoder.codecCtx.contents.height,
-                self._swsFrame.contents.data,
-                self._swsFrame.contents.linesize)
-
-        print("out imeage: " + str(self._swsFrame.contents.width) + " " + str(self._swsFrame.contents.height))
-        print(outSliceHeight)
-
-
-        #return frame
-        #image = Image.new("RGB", (512,512), "white")
-        #image = Image.frombuffer("RGB", (self._swsFrame.contents.width, self._swsFrame.contents.height),
-        #                         self._swsFrame.contents.data[0], "raw", "RGB", 0, 1)
-
-        #just crazy solution for now
-        charList = []
-        for i in range(3 * self._swsFrame.contents.width * self._swsFrame.contents.height):
-            char = chr(self._swsFrame.contents.data[0][i])
-            charList.append(char)
-        stringVal = "".join(charList)
-        print("dataString len: " + str(len(stringVal)))
-        image = Image.frombytes("RGB", (self._swsFrame.contents.width,self._swsFrame.contents.height), stringVal)
-
-
-#        values = [100, 200, 250, 1, 2, 3, 100, 200, 250, 56, 45, 15]
-#        charList = [chr(c) for c in values]
-#        stringVal = "".join(charList)
-#        print(len(stringVal))
-#        image = Image.fromstring("RGB", (1,4), stringVal)
-
-
-#        image = Image.frombytes("L", (self._swsFrame.contents.width,self._swsFrame.contents.height), self._swsFrame.contents.data[0])
-
-
-        image.save("image.png")
-        return image
-
