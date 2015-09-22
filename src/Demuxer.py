@@ -58,7 +58,7 @@ class Demuxer(object):
         ret = avpy.av.lib.av_read_frame(self._inFormatCtx, packetRef)
         self._ctxLock.release()
         if(ret != 0):
-            log.log(log.ERROR, "Cannot read packet.")
+            log.log(log.DEBUG, "Cannot read packet.")
             return None
 
         return PacketWrapper.PacketWrapper(packet)

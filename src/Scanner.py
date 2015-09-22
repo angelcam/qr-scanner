@@ -1,6 +1,4 @@
 # Main class
-
-import threading
 import sys
 import time
 import threading
@@ -56,7 +54,7 @@ class Scanner(object):
                 log.log(log.DEBUG, "Scanner._main_loop: State SCANNER_STATE_CONNECT.")
                 if(self._streamReader.start()):
                     state = SCANNER_STATE_READ
-                    log.log(log.info, "Scanner._main_loop: Connected to stream.")
+                    log.log(log.INFO, "Scanner._main_loop: Connected to stream.")
                 else:
                     self._streamReader.stop()
                     time.sleep(1)
@@ -79,7 +77,6 @@ class Scanner(object):
                             if(not code in self._foundCodes):
                                 sys.stdout.write(str(code) + "\r\n\r\n")
                                 self._foundCodes[code] = code
-                                log.log(log.ERROR, "Found code: " + str(code))
                                 #this will be usefull for testing purposes
                                 #stringData = ctypes.string_at(frame.contents.data[0], frame.contents.width * frame.contents.height)
                                 #image = Image.frombytes("L", (frame.contents.width, frame.contents.height), stringData)

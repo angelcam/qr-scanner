@@ -1,5 +1,3 @@
-import threading
-import time
 import avpy
 import ctypes
 from Logger import log
@@ -14,45 +12,39 @@ class StreamReader(object):
         self._lastFrame = None
         self._swsCtx = None
         self._swsFrame = None
-        self._runRead = threading.Event()
 
     def start(self):
         log.log(log.DEBUG, "StreamReader.start: Starting streamReader.")
-        self._runRead.set()
         if(self._start()):
             log.log(log.INFO, "StreamReader.start: StreamReader started.")
             return True
-
-        return False
+        else:
+            log.log(log.INFO, "StreamReader.start: Starting streamReader failed.")
+            return False
 
     def stop(self):
         log.log(log.DEBUG, "StreamReader.stop: Stopping streamReader.")
-        self._runRead.clear()
         self._demuxer.stop()
         self._decoder.stop()
         log.log(log.DEBUG, "StreamReader.stop: StreamReader stopped ")
 
     def read_image(self):
 
-        while(self._runRead.is_set()):
-            packet = self._demuxer.read()
+        packet = self._demuxer.read()
 
-            if(not packet):
-                self._demuxer.stop()
-                self._decoder.stop()
-                time.sleep(1)
-                self._start()
-                continue
+        if(not packet):
+            return False
 
-            if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
-                continue
+        if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
+            return False
 
-            self._lastFrame = self._decoder.decode(packet)
+        self._lastFrame = self._decoder.decode(packet)
 
-            #first frames will probably not be decoded
-            if(self._lastFrame):
-                return True
-        return None
+        #first frames will probably not be decoded
+        if(self._lastFrame):
+            return True
+        else:
+            return False
 
     def get_out_frame(self):
 
@@ -70,14 +62,8 @@ class StreamReader(object):
         return self._swsFrame
 
     def _start(self):
-        while(self._runRead.is_set()):
-            ret = self._demuxer.start()
-            if(ret):
-                break
-            else:
-                time.sleep(1)
 
-        if(not self._runRead.is_set() or not ret):
+        if(not self._demuxer.start()):
             return False
 
         if(self._decoder.start(self._demuxer.get_context(), self._demuxer.get_video_stream_id())):
