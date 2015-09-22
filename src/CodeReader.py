@@ -1,5 +1,6 @@
 import ctypes
 import zbar
+from Logger import log
 
 class CodeReader(object):
     def __init__(self):
@@ -16,6 +17,7 @@ class CodeReader(object):
         # extract results
         outputData = []
         for symbol in zbarImage:
+            log.log(log.DEBUG, "Found QR code: " + str(symbol.data))
             outputData.append(symbol.data)
 
         # clean up

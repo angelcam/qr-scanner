@@ -2,8 +2,7 @@ import threading
 import time
 import avpy
 import ctypes
-from PIL import Image
-import cStringIO
+from Logger import log
 
 import Demuxer
 import Decoder
@@ -18,20 +17,20 @@ class StreamReader(object):
         self._runRead = threading.Event()
 
     def start(self):
-        print("StreamReader.start: Starting streamReader.")
+        log.log(log.DEBUG, "StreamReader.start: Starting streamReader.")
         self._runRead.set()
         if(self._start()):
-            print("StreamReader.start: StreamReader started ")
+            log.log(log.INFO, "StreamReader.start: StreamReader started.")
             return True
 
         return False
 
     def stop(self):
-        print("StreamReader.stop: Stopping streamReader.")
+        log.log(log.DEBUG, "StreamReader.stop: Stopping streamReader.")
         self._runRead.clear()
         self._demuxer.stop()
         self._decoder.stop()
-        print("StreamReader.stop: StreamReader stopped ")
+        log.log(log.DEBUG, "StreamReader.stop: StreamReader stopped ")
 
     def read_image(self):
 
@@ -102,12 +101,12 @@ class StreamReader(object):
                     None)
 
             if(not self._swsCtx):
-                print("Decoder.start: Cannot create sws context.")
+                log.log(log.DEBUG, "Decoder.start: Cannot create sws context.")
                 return False
 
             self._swsFrame = avpy.av.lib.avcodec_alloc_frame()
             if(not self._swsFrame):
-                print("Decoder.start: Cannot create sws frame.")
+                log.log(log.DEBUG, "Decoder.start: Cannot create sws frame.")
                 return False
 
             avpy.av.lib.avpicture_alloc(
