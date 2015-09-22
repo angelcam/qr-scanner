@@ -6,3 +6,7 @@ libav 9 (Ubuntu 14.04 repo)
 apt-get (Ubuntu 14.04 repo)
 avpy (pip)
 ZBar (pip)
+
+Run:
+python qr-scanner streamAddress [timeout_in_seconds]
+timeout_in_seconds - if ommited, default value will be used (1 minute)

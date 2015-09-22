@@ -9,6 +9,9 @@ import config
 import StreamReader
 import CodeReader
 
+from PIL import Image
+import ctypes
+
 SCANNER_STATE_CONNECT = 0
 SCANNER_STATE_READ = 1
 
@@ -21,12 +24,13 @@ class Scanner(object):
         self._streamAddress = streamAddress
         self._streamReader = StreamReader.StreamReader(self._streamAddress)
         self._codeReader = CodeReader.CodeReader()
+        self._foundCodes = dict()
         self._run = threading.Event()
 
     def start(self):
         print("Scanner.start: Starting scanner.")
         self._run.set()
-        self._main_loop()
+        return self._main_loop()
 
     def stop(self):
         print("Scanner: Stopping scanner.")
@@ -70,11 +74,17 @@ class Scanner(object):
                         if(not frame):
                             continue
 
-                        ret, data = self._codeReader.read(frame)
-                        if(ret == True):
-                            print(data)
-                        else:
-                            print("Scanner._main_loop: Frame " + str(frameI) + " hasnt readable QR code.")
+                        codes = self._codeReader.read(frame)
+                        for code in codes:
+                            #write code only once
+                            if(not code in self._foundCodes):
+                                sys.stdout.write(str(code) + "\r\n\r\n")
+                                self._foundCodes[code] = code
+                                #this will be usefull for testing purposes
+                                #stringData = ctypes.string_at(frame.contents.data[0], frame.contents.width * frame.contents.height)
+                                #image = Image.frombytes("L", (frame.contents.width, frame.contents.height), stringData)
+                                #image.save("image.png")
+                            #else ignored
 
             else:
                 sys.stderr.write("Scanner._main_loop: Unkdnown state.\n")
@@ -82,5 +92,6 @@ class Scanner(object):
 
         if(self._run.is_set()):
             sys.stderr.write("Scanner._main_loop: Timeout.\n")
+            sys.stdout.write("Timeout.\r\n")
         else:
             sys.stderr.write("Scanner._main_loop: Interrupted.\n")

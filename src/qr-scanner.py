@@ -1,5 +1,6 @@
 import signal
 import sys
+import config
 
 import Scanner
 
@@ -12,12 +13,16 @@ def signal_handler(signal, frame):
 def main():
 
     print("START of main.")
-    
+
     #get stream address
-    if(len(sys.argv) != 2):
-        print("main: This program needs exactly one parameter. Stream address.")
+    if(len(sys.argv) != 2 and len(sys.argv) != 3):
+        print("main: Bad number of parameters. Usage: qr-scanner streamAddress [timeout seconds]")
+        print("Default timeout " + str(config.TIMEOUT_S) + "s.")
         exit(1)
+
     streamAddress = sys.argv[1]
+    if(len(sys.argv) == 3):
+        config.TIMEOUT_S = int(sys.argv[2])
 
     #set signal handler
     global scanner
@@ -27,11 +32,12 @@ def main():
     scanner = Scanner.Scanner(streamAddress)
 
     #start scanner
-    scanner.start()  #will eat calling thread
+    ret  = scanner.start()  #will eat calling thread
 
     if(scanner.is_running()):
         scanner.stop()
     print("END of main.")
+    exit(ret)
 
 if __name__ == "__main__":
     main()
