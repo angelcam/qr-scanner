@@ -16,9 +16,12 @@ class Logger(object):
     ERROR = 2
     FATAL = 3
 
+    stringToLevel = {"debug": DEBUG, "info": INFO, "error": ERROR, "fatal": FATAL}
+
     def __init__(self):
         self._metadata = {}
         self._minLevel = self.DEBUG
+        self._write_output = False
 
         self._levelDict = {0:"debug", 1:"info", 2:"error", 3:"fatal"}
 
@@ -40,6 +43,12 @@ class Logger(object):
         if metadata:
             logdata.update(metadata)
         syslog(json.dumps(logdata))
+        if(self._write_output):
+            print(logdata)
+
+    #val = True / False
+    def set_output_writing(self, val):
+        self._write_output = val
 
     def set_min_level(self, level):
         self._minLevel = level

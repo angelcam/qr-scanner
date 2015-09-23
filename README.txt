@@ -8,5 +8,8 @@ avpy (pip)
 ZBar (pip)
 
 Run:
-python qr-scanner streamAddress [timeout_in_seconds]
+python qr-scanner streamAddress [timeout_in_seconds] [logger_level]
 timeout_in_seconds - if ommited, default value will be used (1 minute)
+logger_level - debug, info, error, fatal - default value is info
+
+TODO add input and output formats
