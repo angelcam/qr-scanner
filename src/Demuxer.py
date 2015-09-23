@@ -31,12 +31,13 @@ class Demuxer(object):
         return True
 
     def stop(self):
+        log.log(log.DEBUG, "Demuxer.stop: Stopping demuxer.")
         self._ctxLock.acquire()
         if(self._inFormatCtx != None):
             if(self._inFormatCtx): #TODO continue NULL pointer access
                 avpy.av.lib.avformat_close_input(self._inFormatCtx)
                 self._inFormatCtx = None
-        log.log(log.DEBUG, "Demuxer.stop: Stopped demuxer for address " + self._address)
+        log.log(log.DEBUG, "Demuxer.stop: Demuxer stopped.")
         self._ctxLock.release()
 
     def get_context(self):

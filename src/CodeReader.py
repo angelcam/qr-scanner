@@ -20,6 +20,9 @@ class CodeReader(object):
             log.log(log.DEBUG, "Found QR code: " + str(symbol.data))
             outputData.append(symbol.data)
 
+        if(len(outputData) == 0):
+            log.log(log.DEBUG, "QR code not found.")
+
         # clean up
         del(zbarImage)
 

@@ -1,4 +1,5 @@
 import json
+import sys
 from syslog import syslog, openlog
 
 #Simple syslog logging module
@@ -45,6 +46,7 @@ class Logger(object):
         syslog(json.dumps(logdata))
         if(self._write_output):
             print(logdata)
+            sys.stdout.flush()
 
     #val = True / False
     def set_output_writing(self, val):

@@ -1,7 +1,11 @@
 import avpy
 import ctypes
+import threading
+import Queue
 from Logger import log
+import time
 
+import config
 import Demuxer
 import Decoder
 
@@ -13,9 +17,18 @@ class StreamReader(object):
         self._swsCtx = None
         self._swsFrame = None
 
+        #reader - thread
+        self._thread = None
+        self._run = threading.Event()
+        self._packetQueue = Queue.Queue(config.MAX_PACKETS)
+
     def start(self):
         log.log(log.DEBUG, "StreamReader.start: Starting streamReader.")
         if(self._start()):
+            self._run.set()
+            self._thread = threading.Thread(target=self.main_loop)
+            self._thread.setDaemon(True)
+            self._thread.start()
             log.log(log.INFO, "StreamReader.start: StreamReader started.")
             return True
         else:
@@ -24,18 +37,46 @@ class StreamReader(object):
 
     def stop(self):
         log.log(log.DEBUG, "StreamReader.stop: Stopping streamReader.")
-        self._demuxer.stop()
-        self._decoder.stop()
+        self._run.clear()
+        if(self._thread and self._thread.isAlive()):
+            self._thread.join(2.0)
         log.log(log.DEBUG, "StreamReader.stop: StreamReader stopped ")
 
-    def read_image(self):
+    def main_loop(self):
+        while(self._run.is_set()):
 
-        packet = self._demuxer.read()
+            packet = self._demuxer.read()
 
-        if(not packet):
-            return False
+            #something is wrong - try demuxer restart = restart decoder too
+            if(not packet):
+                log.log(log.ERROR, "StreamReader.main_loop: Cannot read packet. Restarting demuxer, decoder.")
+                while(not self._packetQueue.empty()):
+                    self._packetQueue.get()
+                self._demuxer.stop()
+                self._decoder.stop()
+                self._start()
+                continue
 
-        if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
+            if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
+                continue
+
+            try:
+                self._packetQueue.put(packet, True, 1.0)    #wait second
+            except Queue.Full:
+                log.log(log.DEBUG, "StreamReader.main_loop: Reading of input is too fast. Packet buffer is full.")
+                continue
+
+        #clean everything used by thread
+        while(not self._packetQueue.empty()):
+            self._packetQueue.get()
+        self._demuxer.stop()
+        self._decoder.stop()
+
+    def try_decode(self):
+
+        try:
+            packet = self._packetQueue.get(True, 1.0)
+        except Queue.Empty:
             return False
 
         self._lastFrame = self._decoder.decode(packet)
@@ -55,7 +96,7 @@ class StreamReader(object):
                 self._lastFrame.contents.data,
                 self._lastFrame.contents.linesize,
                 0,
-                self._decoder.codecCtx.contents.height,
+                self._swsFrame.contents.height,
                 self._swsFrame.contents.data,
                 self._swsFrame.contents.linesize)
 

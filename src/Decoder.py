@@ -31,11 +31,14 @@ class Decoder(object):
         log.log(log.DEBUG, "Decoder.start: Decoder started.")
         return True
 
+    #codec context is from input - demuxer = do not free
+    #frame is allocated in codec buffer = do not free
     def stop(self):
         log.log(log.DEBUG, "Decoder.stop: Stopping decoder.")
-        #TODO free stuff avpy.av.lib.avcodec_close(stream.contents.codec) ???
+        self.codecCtx = None
         log.log(log.DEBUG, "Decoder.stop: Decoder stopped.")
 
+    #frame is allocated in codec buffer = do not free
     def decode(self, packetWrap):
         packet = packetWrap.pkt
         pktRef = ctypes.byref(packet)

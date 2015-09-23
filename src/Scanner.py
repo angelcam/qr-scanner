@@ -18,6 +18,7 @@ class Scanner(object):
 
         avpy.av.lib.av_register_all()
         avpy.av.lib.avcodec_register_all()
+        avpy.av.lib.avformat_network_init()
 
         self._streamAddress = streamAddress
         self._streamReader = StreamReader.StreamReader(self._streamAddress)
@@ -33,9 +34,6 @@ class Scanner(object):
     def stop(self):
         log.log(log.DEBUG, "Scanner.stop: Stopping scanner.")
         self._run.clear()
-        self._streamReader.stop()
-
-        log.log(log.DEBUG, "Scanner.stop: Scanner stopped")
 
     def is_running(self):
         return self._run.is_set()
@@ -63,7 +61,7 @@ class Scanner(object):
                 log.log(log.DEBUG, "Scanner._main_loop: State SCANNER_STATE_READ. frameI " + str(frameI))
 
                 #read frame from stream
-                if(self._streamReader.read_image()):
+                if(self._streamReader.try_decode()):
                     frameI += 1
                     if(frameI % config.SKIP_FRAMES == 0):
 
@@ -76,26 +74,31 @@ class Scanner(object):
                             #write code only once
                             if(not code in self._foundCodes):
                                 sys.stdout.write(str(code) + "\r\n\r\n")
+                                sys.stdout.flush()
                                 self._foundCodes[code] = code
                                 #this will be usefull for testing purposes
                                 #stringData = ctypes.string_at(frame.contents.data[0], frame.contents.width * frame.contents.height)
                                 #image = Image.frombytes("L", (frame.contents.width, frame.contents.height), stringData)
                                 #image.save("image.png")
                             #else ignored
-
             else:
                 log.log(log.ERROR, "Scanner._main_loop: Unkdnown state.")
                 self._streamReader.stop()
                 time.sleep(1)
                 state = SCANNER_STATE_CONNECT
 
+        #clean after yourself
+        self._streamReader.stop()
+
         #End prints
         #loop ended by timeout
+        retVal = False
         if(self._run.is_set()):
 
             #good state
             if(len(self._foundCodes) > 0):
                 sys.stdout.write("Timeout.\r\n")
+                sys.stdout.flush()
                 log.log(log.INFO, "Timeout.")
                 return True
 
@@ -110,9 +113,13 @@ class Scanner(object):
 
             log.log(log.ERROR, errMessage)
             sys.stderr.write(errMessage + "\n")
-            return False
+            sys.stderr.flush()
         else:
             #Ended by signal?
             log.log(log.INFO, "Scanner._main_loop: Scanning interrupted before timeout.")
             sys.stderr.write("Scanning interrupted before timeout.\n")
-            return (len(self._foundCodes) > 0)
+            sys.stderr.flush()
+            retVal = (len(self._foundCodes) > 0)
+
+        log.log(log.DEBUG, "Scanner.stop: Scanner stopped")
+        return retVal
