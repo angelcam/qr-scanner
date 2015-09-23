@@ -81,6 +81,7 @@ AV_SAMPLE_FMT_NONE = -1
 SUBTITLE_ASS = 3
 SUBTITLE_TEXT = 2
 PIX_FMT_RGB24 = 2
+PIX_FMT_GRAY8 = 8
 SUBTITLE_BITMAP = 1
 CODEC_ID_MPEG2VIDEO = 2
 CODEC_ID_MPEG1VIDEO = 1
@@ -105,6 +106,8 @@ AV_TIME_BASE = 1000000 # Variable c_int '1000000'
 CODEC_CAP_FRAME_THREADS = 4096 # Variable c_int '4096'
 
 AV_NOPTS_VALUE = 9223372036854775808 # Variable c_ulong '-9223372036854775808ul'
+
+AV_LOG_VERBOSE = 40
 
 class N8AVPacket4DOT_30E(Structure):
 	pass
@@ -875,13 +878,18 @@ av_write_frame.argtypes = [POINTER(AVFormatContext), POINTER(AVPacket)]
 av_new_packet = _libraries['libavcodec.so'].av_new_packet
 av_new_packet.restype = c_int
 av_new_packet.argtypes = [POINTER(AVPacket)]
-
 aac_read_packet_type = CFUNCTYPE(c_int, c_void_p, POINTER(uint8_t), c_int)
 aac_write_packet_type = CFUNCTYPE(c_int, c_void_p, POINTER(uint8_t), c_int)
 aac_seek_packet_type = CFUNCTYPE(int64_t, c_void_p, int64_t, c_int)
 avio_alloc_context = _libraries['libavformat.so'].avio_alloc_context
 avio_alloc_context.restype = POINTER(AVIOContext)
 avio_alloc_context.argtypes = [POINTER(c_char), c_int, c_int, c_void_p, aac_read_packet_type, aac_write_packet_type, aac_seek_packet_type]
+sws_getCachedContext = _libraries['libswscale.so'].sws_getCachedContext
+sws_getCachedContext.restype = POINTER(SwsContext)
+sws_getCachedContext.argtypes = [POINTER(SwsContext), c_int, c_int, AVPixelFormat, c_int, c_int, AVPixelFormat, c_int, POINTER(SwsFilter), POINTER(SwsFilter), POINTER(c_double)]
+avformat_network_init = _libraries['libavformat.so'].avformat_network_init
+avformat_network_init.restype = POINTER(c_char)
+avformat_network_init.argtypes = []
 
 av_codec_next = _libraries['libavcodec.so'].av_codec_next
 av_codec_next.restype = POINTER(AVCodec)

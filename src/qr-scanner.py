@@ -1,5 +1,6 @@
 import signal
 import sys
+import avpy
 
 import Scanner
 from  Logger import log
@@ -16,7 +17,10 @@ def signal_handler(signal, frame):
 
 def main():
 
+    #configura logging
     log.set_output_writing(PRINT_LOGS)
+    if(not PRINT_LOGS):
+        avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE);
     log.set_min_level(log.INFO)
     log.start("qr-scanner")
 
