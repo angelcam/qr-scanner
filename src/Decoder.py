@@ -48,8 +48,10 @@ class Decoder(object):
         ret = avpy.av.lib.avcodec_decode_video2(self.codecCtx, frame, decodedRef, pktRef)
         if(ret <= 0):
             log.log(log.ERROR, "Cannot decode packet. error: " + str(ret))
+            avpy.av.lib.avcodec_free_frame(ctypes.byref(frame))
             return None
         if(decoded.value == 0):
+            avpy.av.lib.avcodec_free_frame(ctypes.byref(frame))
             return None
         else:
             return frame

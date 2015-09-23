@@ -79,6 +79,8 @@ class StreamReader(object):
         except Queue.Empty:
             return False
 
+        if(self._lastFrame):
+            avpy.av.lib.avcodec_free_frame(ctypes.byref(self._lastFrame))
         self._lastFrame = self._decoder.decode(packet)
 
         #first frames will probably not be decoded

@@ -52,6 +52,7 @@ class Demuxer(object):
         self._ctxLock.release()
         return None
 
+    #Is it necessary alloc new packets all the time?
     def read(self):
         packet = avpy.av.lib.AVPacket()
         packetRef = ctypes.byref(packet)
@@ -60,6 +61,11 @@ class Demuxer(object):
         self._ctxLock.release()
         if(ret != 0):
             log.log(log.DEBUG, "Cannot read packet.")
+            avpy.av.lib.av_free_packet(ctypes.byref(packet))
             return None
+        wrap = PacketWrapper.PacketWrapper(packet)
 
-        return PacketWrapper.PacketWrapper(packet)
+        #release original packet
+        avpy.av.lib.av_free_packet(ctypes.byref(packet))
+
+        return wrap
