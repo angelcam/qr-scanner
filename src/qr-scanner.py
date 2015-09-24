@@ -37,7 +37,7 @@ def main():
 
     #get stream address
     if(len(sys.argv) < 2 or len(sys.argv) > 4):
-        sys.stderr.write("main: Bad number of parameters. \n"
+        sys.stderr.write("main: Bad number of parameters. (" + str(len(sys.argv)) + ")\n"
                          "Usage: qr-scanner streamAddress [timeout_seconds] [logger_level]\n"
                          "default_timeout: " + str(config.TIMEOUT_S) + "s."
                          "logger_level: debug, info, error, fatal or writeDebug for debug level syslog and stdout\n")
