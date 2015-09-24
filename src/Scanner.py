@@ -87,9 +87,6 @@ class Scanner(object):
                 time.sleep(1)
                 state = SCANNER_STATE_CONNECT
 
-        #clean after yourself
-        self._streamReader.stop()
-
         #End prints
         #loop ended by timeout
         retVal = False
@@ -120,6 +117,9 @@ class Scanner(object):
             sys.stderr.write("Scanning interrupted before timeout.\n")
             sys.stderr.flush()
             retVal = (len(self._foundCodes) > 0)
+
+        #clean after yourself
+        self._streamReader.stop()
 
         log.log(log.DEBUG, "Scanner.stop: Scanner stopped")
         return retVal

@@ -15,7 +15,7 @@ class Demuxer(object):
 
         self._ctxLock.acquire()
         self._inFormatCtx = ctypes.POINTER(avpy.av.lib.AVFormatContext)()
-        ret = avpy.av.lib.avformat_open_input(self._inFormatCtx, self._address, None, None)
+        ret = avpy.av.lib.avformat_open_input(ctypes.byref(self._inFormatCtx), self._address, None, None)
         if(ret < 0):
             log.log(log.ERROR, "Demuxer.start: Could not open input " + self._address)
             self._ctxLock.release()
@@ -35,10 +35,10 @@ class Demuxer(object):
         self._ctxLock.acquire()
         if(self._inFormatCtx != None):
             if(self._inFormatCtx): #TODO continue NULL pointer access
-                avpy.av.lib.avformat_close_input(self._inFormatCtx)
+                avpy.av.lib.avformat_close_input(ctypes.byref(self._inFormatCtx))
                 self._inFormatCtx = None
-        log.log(log.DEBUG, "Demuxer.stop: Demuxer stopped.")
         self._ctxLock.release()
+        log.log(log.DEBUG, "Demuxer.stop: Demuxer stopped.")
 
     def get_context(self):
         return (self._ctxLock, self._inFormatCtx)
