@@ -20,5 +20,5 @@ RUN cp /root/tmp/qr-scanner/src/avpy/av9.py /usr/local/lib/python2.7/dist-packag
 
 #run command
 WORKDIR /root/qr-scanner
-CMD python -u qr-scanner.py
+ENTRYPOINT ["python", "-u", "qr-scanner.py"]
 
