@@ -40,10 +40,10 @@ def main():
     streamAddress = sys.argv[1]
     log.set_metadata("address", streamAddress)
 
-    if(len(sys.argv) == 3):
+    if(len(sys.argv) >= 3):
         config.TIMEOUT_S = int(sys.argv[2])
 
-    if(len(sys.argv) == 4):
+    if(len(sys.argv) >= 4):
         level = log.stringToLevel.get(sys.argv[3], None)
         if(level == None):
             log.log(log.INFO, "Unknown debug level as parameter: " + str(sys.argv[3]) + " Setting to level info.")
