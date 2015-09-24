@@ -890,6 +890,9 @@ sws_getCachedContext.argtypes = [POINTER(SwsContext), c_int, c_int, AVPixelForma
 avformat_network_init = _libraries['libavformat.so'].avformat_network_init
 avformat_network_init.restype = POINTER(c_char)
 avformat_network_init.argtypes = []
+avcodec_free_frame = _libraries['libavcodec.so'].avcodec_free_frame
+avcodec_free_frame.restype = None
+avcodec_free_frame.argtypes = [POINTER(POINTER(AVFrame))]
 
 av_codec_next = _libraries['libavcodec.so'].av_codec_next
 av_codec_next.restype = POINTER(AVCodec)
