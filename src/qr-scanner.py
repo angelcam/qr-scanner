@@ -6,8 +6,6 @@ import Scanner
 from  Logger import log
 import config
 
-PRINT_LOGS = False
-
 scanner = None
 
 def signal_handler(signal, frame):
@@ -17,24 +15,35 @@ def signal_handler(signal, frame):
 
 def main():
 
-    #configura logging
-    log.set_output_writing(PRINT_LOGS)
-    if(not PRINT_LOGS):
-        avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE);
-    log.set_min_level(log.INFO)
+    #configure logging
     log.start("qr-scanner")
+    log.set_min_level(log.INFO)
+    if(len(sys.argv) >= 4):
+        if(sys.argv[3] == "writeDebug"):
+            log.set_output_writing(True)
+            log.set_min_level(log.DEBUG)
+        else:
+            level = log.stringToLevel.get(sys.argv[3], None)
+            if(level == None):
+                log.log(log.INFO, "Unknown debug level as parameter: " + str(sys.argv[3]) + " Setting to level info.")
+                log.set_min_level(log.INFO)
+            else:
+                log.log(log.INFO, "Setting log level to " + sys.argv[3] + " Setting to level info.")
+                log.set_min_level(level)
+    else:
+        avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE)
 
     log.log(log.INFO, "main: Start of main. Arguments: " + str(sys.argv))
 
     #get stream address
     if(len(sys.argv) < 2 or len(sys.argv) > 4):
-        sys.stderr.write("main: Bad number of parameters. Usage: qr-scanner streamAddress [timeout_seconds] [logger_level]\n"\
-                "default_timeout: " + str(config.TIMEOUT_S) + "s."\
-                "logger_level: debug, info, error, fatal\n")
+        sys.stderr.write("main: Bad number of parameters. \n"
+                         "Usage: qr-scanner streamAddress [timeout_seconds] [logger_level]\n"
+                         "default_timeout: " + str(config.TIMEOUT_S) + "s."
+                         "logger_level: debug, info, error, fatal or writeDebug for debug level syslog and stdout\n")
         log.log(log.FATAL, "main: Bad number of parameters. Usage: qr-scanner streamAddress [timeout_seconds] [logger_level]\n"\
-                "default_timeout: " + str(config.TIMEOUT_S) + "s."\
+                "default_timeout: " + str(config.TIMEOUT_S) + "s."
                 "logger_level: debug, info, error, fatal")
-        print()
         exit(1)
 
     streamAddress = sys.argv[1]
@@ -42,15 +51,6 @@ def main():
 
     if(len(sys.argv) >= 3):
         config.TIMEOUT_S = int(sys.argv[2])
-
-    if(len(sys.argv) >= 4):
-        level = log.stringToLevel.get(sys.argv[3], None)
-        if(level == None):
-            log.log(log.INFO, "Unknown debug level as parameter: " + str(sys.argv[3]) + " Setting to level info.")
-            log.set_min_level(log.INFO)
-        else:
-            log.log(log.INFO, "Setting log level to " + sys.argv[3] + " Setting to level info.")
-            log.set_min_level(level)
 
     #set signal handler
     global scanner
