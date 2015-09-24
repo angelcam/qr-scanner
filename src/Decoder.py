@@ -5,9 +5,12 @@ from Logger import log
 class Decoder(object):
     def __init__(self):
         self.codecCtx = None
+        self._insertedCounter = 0
 
     def start(self, inFormatContextWrap, videoSId):
         log.log(log.DEBUG, "Decoder.start: Starting decoder.")
+        self._insertedCounter = 0
+
         contextLock, inFormatCtx = inFormatContextWrap
 
         contextLock.acquire()
@@ -40,6 +43,13 @@ class Decoder(object):
 
     #frame is allocated in codec buffer = do not free
     def decode(self, packetWrap):
+
+        #first frame must be keyframe
+        if(self._insertedCounter == 0 and not packetWrap.is_keyframe()):
+            return None
+
+        self._insertedCounter += 1
+
         packet = packetWrap.pkt
         pktRef = ctypes.byref(packet)
         frame = avpy.av.lib.avcodec_alloc_frame()
