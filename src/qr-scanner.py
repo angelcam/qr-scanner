@@ -22,6 +22,7 @@ def main():
         if(sys.argv[3] == "writeDebug"):
             log.set_output_writing(True)
             log.set_min_level(log.DEBUG)
+            avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE)
         else:
             level = log.stringToLevel.get(sys.argv[3], None)
             if(level == None):
@@ -30,8 +31,6 @@ def main():
             else:
                 log.log(log.INFO, "Setting log level to " + sys.argv[3] + " Setting to level info.")
                 log.set_min_level(level)
-    else:
-        avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE)
 
     log.log(log.INFO, "main: Start of main. Arguments: " + str(sys.argv))
 
