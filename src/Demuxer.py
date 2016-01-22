@@ -5,13 +5,11 @@ import time
 
 import config
 import PacketWrapper
-import logger
+from Logger import log
 
 
 class Demuxer(object):
     def __init__(self, address):
-        self._log = logger.Logger(stream_url=address, camera_id=None)
-
         self._inFormatCtx = None
         self._ctxLock = threading.Lock()
         self._address = address
@@ -20,12 +18,12 @@ class Demuxer(object):
         self.timeout_signal = False
 
     def start(self):
-        self._log.debug("Demuxer.start: Connecting to source.")
+        log.debug("Demuxer.start: Connecting to source.")
 
         self._ctxLock.acquire()
         self._inFormatCtx = avpy.av.lib.avformat_alloc_context()
         if(not self._inFormatCtx):
-            self._log.error("Demuxer.start: Cannot alloc input format context.")
+            log.error("Demuxer.start: Cannot alloc input format context.")
             self._ctxLock.release()
             return False
 
@@ -39,31 +37,31 @@ class Demuxer(object):
         ret = avpy.av.lib.avformat_open_input(ctypes.byref(self._inFormatCtx), self._address, None, None)
         if(ret < 0):
             if(self.timeout_signal):
-                 self._log.error("Demuxer.start: Could not open input. Timeout. " + str(config.DEMUXER_TIMEOUT_OPEN_INPUT) + "s.")
+                 log.error("Demuxer.start: Could not open input. Timeout. " + str(config.DEMUXER_TIMEOUT_OPEN_INPUT) + "s.")
             else:
-                self._log.error("Demuxer.start: Could not open input. Libav error: " + str(avpy.avMedia.avError(ret)))
+                log.error("Demuxer.start: Could not open input. Libav error: " + str(avpy.avMedia.avError(ret)))
             self._ctxLock.release()
             return False
 
         ret = avpy.av.lib.avformat_find_stream_info(self._inFormatCtx, None)
         if(ret < 0):
-            self._log.error("Demuxer.start: Failed to obtain input stream information of address. Libav error: " + str(avpy.avMedia.avError(ret)))
+            log.error("Demuxer.start: Failed to obtain input stream information of address. Libav error: " + str(avpy.avMedia.avError(ret)))
             self._ctxLock.release()
             return False
         self._ctxLock.release()
 
-        self._log.info("Demuxer.start: Demuxer started.")
+        log.info("Demuxer.start: Demuxer started.")
 
         return True
 
     def stop(self):
-        self._log.debug("Demuxer.stop: Stopping demuxer.")
+        log.debug("Demuxer.stop: Stopping demuxer.")
         self._ctxLock.acquire()
         if(self._inFormatCtx):
             avpy.av.lib.avformat_close_input(ctypes.byref(self._inFormatCtx))
             self._inFormatCtx = None
         self._ctxLock.release()
-        self._log.info("Demuxer.stop: Demuxer stopped.")
+        log.info("Demuxer.stop: Demuxer stopped.")
 
     def get_context(self):
         return (self._ctxLock, self._inFormatCtx)
@@ -90,9 +88,9 @@ class Demuxer(object):
 
         if(ret != 0):
             if(self.timeout_signal):
-                self._log.error("Demuxer.read: Cannot read packet. Timeout. " + str(config.DEMUXER_TIMEOUT_READ_FRAME) + "s.")
+                log.error("Demuxer.read: Cannot read packet. Timeout. " + str(config.DEMUXER_TIMEOUT_READ_FRAME) + "s.")
             else:
-                self._log.error("Demuxer.read: Cannot read packet. Libav error: " + str(avpy.avMedia.avError(ret)))
+                log.error("Demuxer.read: Cannot read packet. Libav error: " + str(avpy.avMedia.avError(ret)))
             avpy.av.lib.av_free_packet(ctypes.byref(packet))
             return None
 

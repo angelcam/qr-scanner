@@ -24,7 +24,7 @@ class PacketWrapper(object):
         newPktRef = ctypes.byref(newPkt)
         ret = avpy.av.lib.av_new_packet(newPktRef, oldPkt.size)
         if(ret != 0):
-            log.log(log.ERROR, "PacketWrapper._copy: Cannot create new packet.")
+            log.warn("PacketWrapper._copy: Cannot create new packet.")
 
         #copy fields
         newPkt.pts = oldPkt.pts

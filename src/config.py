@@ -1,8 +1,12 @@
 #Configuraiton file
+import logger
 
-#default job timeout length
+
+# default minimal log level
+LOG_LEVEL = logger.INFO
+
+# default job timeout length
 TIMEOUT_S = 60
-
 
 # number of frames to skip
 SKIP_FRAMES = 10

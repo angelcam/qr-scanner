@@ -8,10 +8,9 @@ avpy (pip)
 zbar (pip)
 
 Run:
-python qr-scanner streamAddress [timeout_in_seconds] [logger_level]
+python qr-scanner streamAddress [timeout_in_seconds] [writeDebug]
 timeout_in_seconds - if ommited, default value will be used (1 minute)
-logger_level - debug, info, error, fatal - default value is info. Or you can use value "writeDebug" to set level
-    to debug nad write output to stdout
+writeDebug - will set debug logging level and will write logs to stdout
 
 Run in docker:
 docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60

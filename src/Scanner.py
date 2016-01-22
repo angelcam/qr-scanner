@@ -27,19 +27,19 @@ class Scanner(object):
         self._run = threading.Event()
 
     def start(self):
-        log.log(log.DEBUG, "Scanner.start: Starting scanner.")
+        log.debug("Scanner.start: Starting scanner.")
         self._run.set()
         return self._main_loop()
 
     def stop(self):
-        log.log(log.DEBUG, "Scanner.stop: Stopping scanner.")
+        log.debug("Scanner.stop: Stopping scanner.")
         self._run.clear()
 
     def is_running(self):
         return self._run.is_set()
 
     def _main_loop(self):
-        log.log(log.DEBUG, "Scanner._main_loop: Scanner started.")
+        log.debug("Scanner._main_loop: Scanner started.")
         self._run.set()
         startTime = time.time()
 
@@ -49,24 +49,25 @@ class Scanner(object):
         while(time.time() - startTime < config.TIMEOUT_S and self._run.is_set()):
 
             if(state == SCANNER_STATE_CONNECT):
-                log.log(log.DEBUG, "Scanner._main_loop: State SCANNER_STATE_CONNECT.")
+                log.debug("Scanner._main_loop: State SCANNER_STATE_CONNECT.")
                 if(self._streamReader.start()):
                     state = SCANNER_STATE_READ
-                    log.log(log.INFO, "Scanner._main_loop: Connected to stream.")
+                    log.debug("Scanner._main_loop: Connected to stream.")
                 else:
                     self._streamReader.stop()
                     time.sleep(1)
 
             elif(state == SCANNER_STATE_READ):
-                log.log(log.DEBUG, "Scanner._main_loop: State SCANNER_STATE_READ. frameI " + str(frameI))
 
                 #read frame from stream
                 if(self._streamReader.try_decode()):
                     frameI += 1
+                    log.debug("Scanner._main_loop: State SCANNER_STATE_READ.", frameI=frameI)
                     if(frameI % config.SKIP_FRAMES == 0):
 
                         frame = self._streamReader.get_out_frame()
                         if(not frame):
+                            log.debug("Scanner._main_loop: Cannot get ouput frame.", frameI=frameI)
                             continue
 
                         codes = self._codeReader.read(frame)
@@ -82,7 +83,7 @@ class Scanner(object):
                                 #image.save("image.png")
                             #else ignored
             else:
-                log.log(log.ERROR, "Scanner._main_loop: Unkdnown state.")
+                log.debug("Scanner._main_loop: Unkdnown state.")
                 self._streamReader.stop()
                 time.sleep(1)
                 state = SCANNER_STATE_CONNECT
@@ -96,7 +97,7 @@ class Scanner(object):
             if(len(self._foundCodes) > 0):
                 sys.stdout.write("Timeout.\r\n")
                 sys.stdout.flush()
-                log.log(log.INFO, "Timeout.")
+                log.info("Timeout.")
                 return True
 
             #bad states
@@ -108,12 +109,12 @@ class Scanner(object):
             else:
                 errMessage = "Timeout. Could not find or decode qr code (code not in stream)."
 
-            log.log(log.ERROR, errMessage)
+            log.error(errMessage)
             sys.stderr.write(errMessage + "\n")
             sys.stderr.flush()
         else:
             #Ended by signal?
-            log.log(log.INFO, "Scanner._main_loop: Scanning interrupted before timeout.")
+            log.info("Scanner._main_loop: Scanning interrupted before timeout.")
             sys.stderr.write("Scanning interrupted before timeout.\n")
             sys.stderr.flush()
             retVal = (len(self._foundCodes) > 0)
@@ -121,5 +122,5 @@ class Scanner(object):
         #clean after yourself
         self._streamReader.stop()
 
-        log.log(log.DEBUG, "Scanner.stop: Scanner stopped")
+        log.debug("Scanner.stop: Scanner stopped")
         return retVal
