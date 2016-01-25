@@ -12,6 +12,7 @@ class StreamReader(object):
     def __init__(self, address):
         self._demuxer = Demuxer.Demuxer(address)
         self._decoder = Decoder.Decoder()
+        self._lastPck = None
         self._lastFrame = None
         self._swsCtx = None
         self._swsFrame = None
@@ -60,7 +61,7 @@ class StreamReader(object):
                 continue
 
             try:
-                self._packetQueue.put(packet, True, 1.0)    #wait second
+                self._packetQueue.put(packet, False)
             except Queue.Full:
                 log.debug("StreamReader.main_loop: Reading of input is too fast. Packet buffer is full.")
                 continue
@@ -74,13 +75,13 @@ class StreamReader(object):
     def try_decode(self):
 
         try:
-            packet = self._packetQueue.get(True, 1.0)
+            self._lastPck = self._packetQueue.get(True, 1.0)
         except Queue.Empty:
             return False
 
         if(self._lastFrame):
             avpy.av.lib.avcodec_free_frame(ctypes.byref(self._lastFrame))
-        self._lastFrame = self._decoder.decode(packet)
+        self._lastFrame = self._decoder.decode(self._lastPck)
 
         #first frames will probably not be decoded
         if(self._lastFrame):
@@ -93,6 +94,7 @@ class StreamReader(object):
         if(not self._lastFrame):
             return None
 
+        #transform last frame to swsFrame (decoder output AVFrame -> desired paraemters AVframe)
         outSliceHeight = avpy.av.lib.sws_scale(self._swsCtx,
                 self._lastFrame.contents.data,
                 self._lastFrame.contents.linesize,
@@ -101,7 +103,7 @@ class StreamReader(object):
                 self._swsFrame.contents.data,
                 self._swsFrame.contents.linesize)
 
-        return self._swsFrame
+        return (self._swsFrame, self._lastPck.dtsTime)
 
     def _start(self):
 

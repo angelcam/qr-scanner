@@ -26,6 +26,10 @@ class Scanner(object):
         self._foundCodes = dict()
         self._run = threading.Event()
 
+        #frame skipping
+        self._lastDtsTime = None
+        self._lastScanLen = None
+
     def start(self):
         log.debug("Scanner.start: Starting scanner.")
         self._run.set()
@@ -46,6 +50,7 @@ class Scanner(object):
         state = SCANNER_STATE_CONNECT
 
         frameI = 0
+        skippedCount = 0
         while(time.time() - startTime < config.TIMEOUT_S and self._run.is_set()):
 
             if(state == SCANNER_STATE_CONNECT):
@@ -61,27 +66,46 @@ class Scanner(object):
 
                 #read frame from stream
                 if(self._streamReader.try_decode()):
+
+                    #read frame
+                    outFrame = self._streamReader.get_out_frame()
+                    if(not outFrame):
+                        log.debug("Scanner._main_loop: Cannot get ouput frame.", frameI=frameI)
+                        continue
+
+                    frame, dtsTime = outFrame
+
+                    #skip frames
+                    now = time.time()
+                    if(self._lastDtsTime and self._lastScanLen):
+                        if(dtsTime < self._lastDtsTime):
+                            self._lastDtsTime = dtsTime
+                        else:
+
+                            if(dtsTime - self._lastDtsTime < config.SKIP_TIME_S
+                               or dtsTime - self._lastDtsTime < self._lastScanLen):
+                                skippedCount += 1
+                                continue
+
+                    if(skippedCount > 0):
+                        log.debug("Scanner._main_loop: Skipped " + str(skippedCount) + " frames: ")
+
+                    skippedCount = 0
+                    self._lastDtsTime = dtsTime
+
                     frameI += 1
                     log.debug("Scanner._main_loop: State SCANNER_STATE_READ.", frameI=frameI)
-                    if(frameI % config.SKIP_FRAMES == 0):
 
-                        frame = self._streamReader.get_out_frame()
-                        if(not frame):
-                            log.debug("Scanner._main_loop: Cannot get ouput frame.", frameI=frameI)
-                            continue
+                    self._lastScanLen = time.time()
+                    codes = self._codeReader.read(frame)
+                    self._lastScanLen = time.time() - self._lastScanLen
 
-                        codes = self._codeReader.read(frame)
-                        for code in codes:
-                            #write code only once
-                            if(not code in self._foundCodes):
-                                sys.stdout.write(str(code) + "\r\n\r\n")
-                                sys.stdout.flush()
-                                self._foundCodes[code] = code
-                                #this will be usefull for testing purposes
-                                #stringData = ctypes.string_at(frame.contents.data[0], frame.contents.width * frame.contents.height)
-                                #image = Image.frombytes("L", (frame.contents.width, frame.contents.height), stringData)
-                                #image.save("image.png")
-                            #else ignored
+                    for code in codes:
+                        #write code only once
+                        if(not code in self._foundCodes):
+                            sys.stdout.write(str(code) + "\r\n\r\n")
+                            sys.stdout.flush()
+                            self._foundCodes[code] = code
             else:
                 log.debug("Scanner._main_loop: Unkdnown state.")
                 self._streamReader.stop()
