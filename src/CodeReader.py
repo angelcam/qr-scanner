@@ -1,6 +1,7 @@
 import ctypes
 import zbar
 from Logger import log
+import Image
 
 class CodeReader(object):
     def __init__(self):
@@ -10,12 +11,22 @@ class CodeReader(object):
     def read(self, avFrame):
 
         stringData = ctypes.string_at(avFrame.contents.data[0], avFrame.contents.width * avFrame.contents.height)
-        zbarImage = zbar.Image(avFrame.contents.width, avFrame.contents.height,"Y800" , stringData)
+
+        image = Image.frombytes("L", (avFrame.contents.width,avFrame.contents.height), stringData)
+        mirrored = image.transpose(Image.FLIP_LEFT_RIGHT)
+
+        outputData = self._read(image) + self._read(mirrored)
+
+        return outputData
+
+    #takes Image and returns list of detected strings
+    def _read(self, image):
+        outputData = []
+
+        zbarImage = zbar.Image(image.size[0], image.size[1], "Y800" , image.tostring())
 
         self._scanner.scan(zbarImage)
 
-        # extract results
-        outputData = []
         for symbol in zbarImage:
             log.debug("Found QR code: " + str(symbol.data))
             outputData.append(symbol.data)
