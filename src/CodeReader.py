@@ -13,12 +13,6 @@ class CodeReader(object):
 
     def read(self, avFrame):
 
-        maxRes = max(avFrame.contents.width, avFrame.contents.height)
-        density = maxRes/config.SCAN_RES_DIVIDER
-        if(density > 1):
-            self._scanner.set_config(0, 0x100, density) #0x100 je x density
-            self._scanner.set_config(0, 0x101, density) #0x101 je y density
-
         stringData = ctypes.string_at(avFrame.contents.data[0], avFrame.contents.width * avFrame.contents.height)
 
         image = Image.frombytes("L", (avFrame.contents.width,avFrame.contents.height), stringData)

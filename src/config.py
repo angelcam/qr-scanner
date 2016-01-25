@@ -18,12 +18,12 @@ DEMUXER_TIMEOUT_READ_FRAME = 10
 # image packet queue size - HLS input, packets downloaded at start = 40s * 25frames = 1000
 MAX_PACKETS = 100
 
+# maximal length of widht or height of input image
+# large image is scaled to x:DECODER_MAX_RESOLUTION or DECODER_MAX_RESOLUTION:y
+# aspect ration is preserved
+# 1000 is safe, 500 can work (number) [px]
+DECODER_MAX_RESOLUTION = 1000
+
 # Time between scanned images (number) [s]
 # If scanning is too slow (time_of_scanning > SKIP_TIME), program will skip time_of_scanning
 SKIP_TIME_S = 0.5
-
-# number for dividing higher value of image width and height to get density
-# density is how many line you skip in image evaluation (zbar uses 127x127)
-# does not round e.g. 1920x1200 -> 1920/500 = 2 = every second row and column is used in scanning = (63x63 scan lines)
-# 1000 is safe 500 works
-SCAN_RES_DIVIDER = 500

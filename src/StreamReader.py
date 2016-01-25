@@ -99,7 +99,7 @@ class StreamReader(object):
                 self._lastFrame.contents.data,
                 self._lastFrame.contents.linesize,
                 0,
-                self._swsFrame.contents.height,
+                self._lastFrame.contents.height,
                 self._swsFrame.contents.data,
                 self._swsFrame.contents.linesize)
 
@@ -116,14 +116,18 @@ class StreamReader(object):
             width = self._decoder.codecCtx.contents.width
             height = self._decoder.codecCtx.contents.height
             outPixFmt = avpy.av.lib.PIX_FMT_GRAY8
+
+            #prepare output resolution
+            widthOut, heightOut = self._output_resolution(width, height)
+
             nullSwsCtx = ctypes.cast(None, ctypes.POINTER(avpy.av.lib.SwsContext))
             self._swsCtx = avpy.av.lib.sws_getCachedContext(
                     nullSwsCtx,
                     width,
                     height,
                     self._decoder.codecCtx.contents.pix_fmt,
-                    width,
-                    height,
+                    widthOut,
+                    heightOut,
                     outPixFmt,
                     avpy.av.lib.SWS_BILINEAR,
                     None,
@@ -142,12 +146,29 @@ class StreamReader(object):
             avpy.av.lib.avpicture_alloc(
                     ctypes.cast(self._swsFrame, ctypes.POINTER(avpy.av.lib.AVPicture)),
                     outPixFmt,
-                    width,
-                    height)
+                    widthOut,
+                    heightOut)
 
             #set output parameters
-            self._swsFrame.contents.width = width
-            self._swsFrame.contents.height = height
+            self._swsFrame.contents.width = widthOut
+            self._swsFrame.contents.height = heightOut
             self._swsFrame.contents.format = outPixFmt
 
             return True
+
+    def _output_resolution(self, width, height):
+        widthOut = width
+        heightOut = height
+
+        if(max(width, height) > config.DECODER_MAX_RESOLUTION):
+            widthMul = width / config.DECODER_MAX_RESOLUTION
+            heightMul = height / config.DECODER_MAX_RESOLUTION
+
+            if(widthMul > heightMul):
+                widthOut = config.DECODER_MAX_RESOLUTION
+                heightOut = int(height * config.DECODER_MAX_RESOLUTION / float(width))
+            else:
+                heightOut = config.DECODER_MAX_RESOLUTION
+                widthOut = int(width * config.DECODER_MAX_RESOLUTION / float(height))
+
+        return (widthOut, heightOut)
