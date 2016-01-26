@@ -2,8 +2,7 @@ import ctypes
 
 import zbar
 from Logger import log
-import Image
-import config
+from PIL import Image
 
 class CodeReader(object):
     def __init__(self):
@@ -32,7 +31,7 @@ class CodeReader(object):
     def _read(self, image):
         outputData = []
 
-        zbarImage = zbar.Image(image.size[0], image.size[1], "Y800" , image.tostring())
+        zbarImage = zbar.Image(image.size[0], image.size[1], "Y800" , image.tobytes())
 
         self._scanner.scan(zbarImage)
 
