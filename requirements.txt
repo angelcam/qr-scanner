@@ -1,0 +1,4 @@
+avpy
+zbar
+Pillow
+-e git+https://bitbucket.org/angelcam/logger.git#egg=logger

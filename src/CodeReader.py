@@ -1,27 +1,42 @@
 import ctypes
+
 import zbar
 from Logger import log
+from PIL import Image
 
 class CodeReader(object):
     def __init__(self):
         self._scanner = zbar.ImageScanner()
-        self._scanner.parse_config('enable')
+        self._scanner.set_config(0, 0, 0)
+        self._scanner.set_config(zbar.Symbol.QRCODE, 0, 1)
 
     def read(self, avFrame):
 
         stringData = ctypes.string_at(avFrame.contents.data[0], avFrame.contents.width * avFrame.contents.height)
-        zbarImage = zbar.Image(avFrame.contents.width, avFrame.contents.height,"Y800" , stringData)
+
+        image = Image.frombytes("L", (avFrame.contents.width,avFrame.contents.height), stringData)
+        mirrored = image.transpose(Image.FLIP_LEFT_RIGHT)
+
+        outputData = self._read(image) + self._read(mirrored)
+
+        if(len(outputData) > 0):
+            for code in outputData:
+                log.debug("Found QR code: " + str(code))
+        else:
+            log.debug("QR code not found.")
+
+        return outputData
+
+    #takes Image and returns list of detected strings
+    def _read(self, image):
+        outputData = []
+
+        zbarImage = zbar.Image(image.size[0], image.size[1], "Y800" , image.tobytes())
 
         self._scanner.scan(zbarImage)
 
-        # extract results
-        outputData = []
         for symbol in zbarImage:
-            log.log(log.DEBUG, "Found QR code: " + str(symbol.data))
             outputData.append(symbol.data)
-
-        if(len(outputData) == 0):
-            log.log(log.DEBUG, "QR code not found.")
 
         # clean up
         del(zbarImage)
