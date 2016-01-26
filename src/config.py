@@ -16,7 +16,7 @@ DEMUXER_TIMEOUT_READ_FRAME = 10
 
 # Streamreader
 # image packet queue size - HLS input, packets downloaded at start = 40s * 25frames = 1000
-MAX_PACKETS = 100
+MAX_PACKETS = 200
 
 # maximal length of widht or height of input image
 # large image is scaled to x:DECODER_MAX_RESOLUTION or DECODER_MAX_RESOLUTION:y
