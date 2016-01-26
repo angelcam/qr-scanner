@@ -95,6 +95,7 @@ class Demuxer(object):
             else:
                 log.error("Demuxer.read: Cannot read packet. Libav error: " + str(avpy.avMedia.avError(ret)))
             avpy.av.lib.av_free_packet(ctypes.byref(packet))
+            self._ctxLock.release()
             return None
 
         wrap = PacketWrapper.PacketWrapper(packet)

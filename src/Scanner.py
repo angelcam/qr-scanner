@@ -55,12 +55,9 @@ class Scanner(object):
 
             if(state == SCANNER_STATE_CONNECT):
                 log.debug("Scanner._main_loop: State SCANNER_STATE_CONNECT.")
-                if(self._streamReader.start()):
-                    state = SCANNER_STATE_READ
-                    log.debug("Scanner._main_loop: Connected to stream.")
-                else:
-                    self._streamReader.stop()
-                    time.sleep(1)
+                self._streamReader.start()
+                state = SCANNER_STATE_READ
+                log.debug("Scanner._main_loop: Connecting to stream ... ")
 
             elif(state == SCANNER_STATE_READ):
 

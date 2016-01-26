@@ -2,8 +2,9 @@ import avpy
 import ctypes
 import threading
 import Queue
-from Logger import log
+import time
 
+from Logger import log
 import config
 import Demuxer
 import Decoder
@@ -24,16 +25,11 @@ class StreamReader(object):
 
     def start(self):
         log.debug("StreamReader.start: Starting streamReader.")
-        if(self._start()):
-            self._run.set()
-            self._thread = threading.Thread(target=self.main_loop)
-            self._thread.setDaemon(True)
-            self._thread.start()
-            log.info("StreamReader.start: StreamReader started.")
-            return True
-        else:
-            log.info("StreamReader.start: Starting streamReader failed.")
-            return False
+        self._run.set()
+        self._thread = threading.Thread(target=self.main_loop)
+        self._thread.setDaemon(True)
+        self._thread.start()
+        log.info("StreamReader.start: StreamReader started.")
 
     def stop(self):
         log.debug("StreamReader.stop: Stopping streamReader.")
@@ -43,6 +39,11 @@ class StreamReader(object):
         log.debug("StreamReader.stop: StreamReader stopped ")
 
     def main_loop(self):
+
+        while(self._run.is_set() and not self._start()):
+            self._stop()
+            time.sleep(1)
+
         while(self._run.is_set()):
 
             packet = self._demuxer.read()
@@ -50,11 +51,10 @@ class StreamReader(object):
             #something is wrong - try demuxer restart = restart decoder too
             if(not packet):
                 log.warn("StreamReader.main_loop: Cannot read packet. Restarting demuxer, decoder.")
-                while(not self._packetQueue.empty()):
-                    self._packetQueue.get()
-                self._demuxer.stop()
-                self._decoder.stop()
-                self._start()
+                self._stop()
+                while(self._run.is_set() and not self._start()):
+                    self._stop()
+                    time.sleep(1)
                 continue
 
             if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
@@ -67,10 +67,7 @@ class StreamReader(object):
                 continue
 
         #clean everything used by thread
-        while(not self._packetQueue.empty()):
-            self._packetQueue.get()
-        self._demuxer.stop()
-        self._decoder.stop()
+        self._stop()
 
     def try_decode(self):
 
@@ -104,6 +101,12 @@ class StreamReader(object):
                 self._swsFrame.contents.linesize)
 
         return (self._swsFrame, self._lastPck.dtsTime)
+
+    def _stop(self):
+        while(not self._packetQueue.empty()):
+            self._packetQueue.get()
+        self._demuxer.stop()
+        self._decoder.stop()
 
     def _start(self):
 
