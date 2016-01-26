@@ -1,22 +1,23 @@
 README for qrScanner for Arrow v2.
 
+Notes:
+- reads only QR codes
+- configuration is in src/config.ini, docker image /root/qr-scanner/config.ini
+
 Requirements:
 Python (2.7)
 libav 9 (Ubuntu 14.04 repo)
 libzbar-dev (Ubuntu 14.04 repo)
 avpy (pip)
 zbar (pip)
+Pillow (pip)
 
 Run:
 python qr-scanner streamAddress [timeout_in_seconds] [writeDebug]
 timeout_in_seconds - if ommited, default value will be used (1 minute)
-writeDebug - will set debug logging level and will write logs to stdout
+writeDebug - will set debug logging level and will write logs to stdout, must be second parameter
 
 Run in docker:
 docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60
 debug version:
-docker run -i -t angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60 writeDebug
-
-TODO:
-- add input and output formats
-- zbar supported code types
+docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60 writeDebug
