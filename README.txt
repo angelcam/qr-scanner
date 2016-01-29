@@ -14,10 +14,22 @@ Pillow (pip)
 
 Run:
 python qr-scanner streamAddress [timeout_in_seconds] [writeDebug]
-timeout_in_seconds - if ommited, default value will be used (1 minute)
+timeout_in_seconds - length of run of program. Connection time is included. If ommited, default value will be used (1 minute)
 writeDebug - will set debug logging level and will write logs to stdout, must be second parameter
 
 Run in docker:
 docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60
 debug version:
 docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60 writeDebug
+
+Behavior notes:
+- program will run whole timeout_in_seconds and write all detected QR codes
+- every detected code is written only once.
+
+Outputs:
+In case of success:
+- decoded QR codes, one per line
+- stdout will contain "Timeout." after end of program
+In case of error:
+- decoded QR codes, one per line
+- stderr will contain "Timeout. XXX", where XXX is error message
