@@ -27,7 +27,7 @@ def main():
             log.set_min_level(logger.DEBUG)
             avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE)
         else:
-            print("Unknown last parameter.")
+            print("main: Unknown last parameter.")
     else:
         avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_QUIET)
 
