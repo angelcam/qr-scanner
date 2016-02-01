@@ -39,6 +39,9 @@ class StreamReader(object):
         #stop thread
         self._run.clear()
 
+        #stop demuxer - will abort reading
+        self._demuxer.stop()
+
         #join thread
         if(self._thread and self._thread.isAlive()):
             self._thread.join()
@@ -59,11 +62,14 @@ class StreamReader(object):
 
             #something is wrong - try demuxer restart = restart decoder too
             if(not packet):
-                log.warn("StreamReader.main_loop: Cannot read packet. Restarting demuxer, decoder.")
-                self._stop()
-                while(self._run.is_set() and not self._start()):
+
+                #should program countinue? Or jump to while and stop?
+                if(self._run.is_set()):
+                    log.warn("StreamReader.main_loop: Cannot read packet. Restarting demuxer, decoder.")
                     self._stop()
-                    time.sleep(1)
+                    while(self._run.is_set() and not self._start()):
+                        self._stop()
+                        time.sleep(1)
                 continue
 
             if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
