@@ -12,6 +12,7 @@ class Demuxer(object):
     def __init__(self, address):
         self._inFormatCtx = None
         self._ctxLock = threading.Lock()
+        self._run = threading.Event()
         self._address = address
         self._timeoutCB = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p)(self._timeout_check)
         self._timeout_time = None
@@ -22,11 +23,14 @@ class Demuxer(object):
     def start(self):
         log.debug("Demuxer.start: Connecting to source.")
 
+        self._run.set()
+
         self._ctxLock.acquire()
         self._inFormatCtx = avpy.av.lib.avformat_alloc_context()
         if(not self._inFormatCtx):
             log.error("Demuxer.start: Cannot alloc input format context.")
             self._ctxLock.release()
+            self._run.clear()
             return False
 
         #set timeout check callback
@@ -43,12 +47,14 @@ class Demuxer(object):
             else:
                 log.error("Demuxer.start: Could not open input. Libav error: " + str(avpy.avMedia.avError(ret)))
             self._ctxLock.release()
+            self._run.clear()
             return False
 
         ret = avpy.av.lib.avformat_find_stream_info(self._inFormatCtx, None)
         if(ret < 0):
             log.error("Demuxer.start: Failed to obtain input stream information of address. Libav error: " + str(avpy.avMedia.avError(ret)))
             self._ctxLock.release()
+            self._run.clear()
             return False
         self._ctxLock.release()
 
@@ -57,7 +63,15 @@ class Demuxer(object):
         return True
 
     def stop(self):
+        if(not self._run.is_set()):
+            return
+
         log.debug("Demuxer.stop: Stopping demuxer.")
+
+        #stop actually running read
+        self._run.clear()
+
+        #release context
         self._ctxLock.acquire()
         if(self._inFormatCtx):
             avpy.av.lib.avformat_close_input(ctypes.byref(self._inFormatCtx))
@@ -80,6 +94,10 @@ class Demuxer(object):
 
     #Is it necessary alloc new packets all the time?
     def read(self):
+
+        if(not self._run.is_set()):
+            return None
+
         packet = avpy.av.lib.AVPacket()
         packetRef = ctypes.byref(packet)
 
@@ -88,11 +106,10 @@ class Demuxer(object):
         self._ctxLock.acquire()
         ret = avpy.av.lib.av_read_frame(self._inFormatCtx, packetRef)
 
-
         if(ret != 0):
             if(self.timeout_signal):
                 log.error("Demuxer.read: Cannot read packet. Timeout. " + str(config.DEMUXER_TIMEOUT_READ_FRAME) + "s.")
-            else:
+            elif(self._run.is_set()):
                 log.error("Demuxer.read: Cannot read packet. Libav error: " + str(avpy.avMedia.avError(ret)))
             avpy.av.lib.av_free_packet(ctypes.byref(packet))
             self._ctxLock.release()
@@ -113,6 +130,10 @@ class Demuxer(object):
 
     #timeout check return 0 to continue, return 1 to stop blocking function
     def _timeout_check(self, context):
+
+        if(not self._run.is_set()):
+            return 1
+
         if(time.time() > self._timeout_time):
             self.timeout_signal = True
             return 1

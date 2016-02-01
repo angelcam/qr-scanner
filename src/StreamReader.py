@@ -32,10 +32,14 @@ class StreamReader(object):
         log.info("StreamReader.start: StreamReader started.")
 
     def stop(self):
+        if(not self._run.is_set()):
+            return
+
         log.debug("StreamReader.stop: Stopping streamReader.")
         self._run.clear()
+        self._stop()
         if(self._thread and self._thread.isAlive()):
-            self._thread.join(2.0)
+            self._thread.join()
         log.debug("StreamReader.stop: StreamReader stopped ")
 
     def main_loop(self):
@@ -65,9 +69,6 @@ class StreamReader(object):
             except Queue.Full:
                 log.debug("StreamReader.main_loop: Reading of input is too fast. Packet buffer is full.")
                 continue
-
-        #clean everything used by thread
-        self._stop()
 
     def try_decode(self):
 
@@ -107,6 +108,12 @@ class StreamReader(object):
             self._packetQueue.get()
         self._demuxer.stop()
         self._decoder.stop()
+        if(self._swsCtx != None):
+            avpy.av.lib.sws_freeContext(self._swsCtx)
+            self._swsCtx = None
+        if(self._swsFrame != None):
+            avpy.av.lib.avcodec_free_frame(self._swsFrame)
+            self._swsFrame = None
 
     def _start(self):
 
