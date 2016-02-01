@@ -36,10 +36,15 @@ class StreamReader(object):
             return
 
         log.debug("StreamReader.stop: Stopping streamReader.")
+        #stop thread
         self._run.clear()
-        self._stop()
+
+        #join thread
         if(self._thread and self._thread.isAlive()):
             self._thread.join()
+
+        #release memory
+        self._stop()
         log.debug("StreamReader.stop: StreamReader stopped ")
 
     def main_loop(self):
