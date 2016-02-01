@@ -33,3 +33,16 @@ In case of success:
 In case of error:
 - decoded QR codes, one per line
 - stderr will contain "Timeout. XXX", where XXX is error message
+
+Error messages:
+"Timeout. Could not connect to stream (demuxing problem)."
+- scanner couldn't connect to stream
+- posssible cause: bad address, totally broken stream
+"Timeout. Could not read or decode packets (corrupted stream)."
+- scanner connected to stream, but couldn't decode even one frame
+- broken stream, no keyframes
+"Timeout. Could not find or decode qr code (code not in stream)."
+- scanner decoded some frames from stream, but couldn't find QR code in them
+- QR code is too far from camera, too small, bent, blurry, out of camera field of view or bad lightning conditions
+"main: description of problem with arguments"
+- scanner cannot parse input parameters
