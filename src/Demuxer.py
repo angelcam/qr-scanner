@@ -56,6 +56,14 @@ class Demuxer(object):
             self._ctxLock.release()
             self._run.clear()
             return False
+
+        #set video stream id
+        self._videoStreamId = None
+        for i in range(self._inFormatCtx.contents.nb_streams):
+            if(self._inFormatCtx.contents.streams[i].contents.codec.contents.codec_type == avpy.av.lib.AVMEDIA_TYPE_VIDEO):
+                self._videoStreamId = i
+                break
+
         self._ctxLock.release()
 
         log.info("Demuxer.start: Demuxer started.")
@@ -83,13 +91,6 @@ class Demuxer(object):
         return (self._ctxLock, self._inFormatCtx)
 
     def get_video_stream_id(self):
-        if(not self._videoStreamId):
-            self._ctxLock.acquire()
-            for i in range(self._inFormatCtx.contents.nb_streams):
-                if(self._inFormatCtx.contents.streams[i].contents.codec.contents.codec_type == avpy.av.lib.AVMEDIA_TYPE_VIDEO):
-                    self._videoStreamId = i
-                    break
-            self._ctxLock.release()
         return self._videoStreamId
 
     #Is it necessary alloc new packets all the time?
