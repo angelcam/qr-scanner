@@ -96,15 +96,17 @@ class Demuxer(object):
     #Is it necessary alloc new packets all the time?
     def read(self):
 
-        if(not self._run.is_set()):
-            return None
-
         packet = avpy.av.lib.AVPacket()
         packetRef = ctypes.byref(packet)
 
+        self._ctxLock.acquire()
+        if(not self._run.is_set()):
+            print("re")
+            self._ctxLock.release()
+            return None
+
         #set timeout
         self._set_timeout(config.DEMUXER_TIMEOUT_READ_FRAME)
-        self._ctxLock.acquire()
         ret = avpy.av.lib.av_read_frame(self._inFormatCtx, packetRef)
 
         if(ret != 0):
