@@ -56,6 +56,14 @@ class Demuxer(object):
             self._ctxLock.release()
             self._run.clear()
             return False
+
+        #set video stream id
+        self._videoStreamId = None
+        for i in range(self._inFormatCtx.contents.nb_streams):
+            if(self._inFormatCtx.contents.streams[i].contents.codec.contents.codec_type == avpy.av.lib.AVMEDIA_TYPE_VIDEO):
+                self._videoStreamId = i
+                break
+
         self._ctxLock.release()
 
         log.info("Demuxer.start: Demuxer started.")
@@ -83,27 +91,22 @@ class Demuxer(object):
         return (self._ctxLock, self._inFormatCtx)
 
     def get_video_stream_id(self):
-        if(not self._videoStreamId):
-            self._ctxLock.acquire()
-            for i in range(self._inFormatCtx.contents.nb_streams):
-                if(self._inFormatCtx.contents.streams[i].contents.codec.contents.codec_type == avpy.av.lib.AVMEDIA_TYPE_VIDEO):
-                    self._videoStreamId = i
-                    break
-            self._ctxLock.release()
         return self._videoStreamId
 
     #Is it necessary alloc new packets all the time?
     def read(self):
 
-        if(not self._run.is_set()):
-            return None
-
         packet = avpy.av.lib.AVPacket()
         packetRef = ctypes.byref(packet)
 
+        self._ctxLock.acquire()
+        if(not self._run.is_set()):
+            print("re")
+            self._ctxLock.release()
+            return None
+
         #set timeout
         self._set_timeout(config.DEMUXER_TIMEOUT_READ_FRAME)
-        self._ctxLock.acquire()
         ret = avpy.av.lib.av_read_frame(self._inFormatCtx, packetRef)
 
         if(ret != 0):
