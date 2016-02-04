@@ -101,7 +101,6 @@ class Demuxer(object):
 
         self._ctxLock.acquire()
         if(not self._run.is_set()):
-            print("re")
             self._ctxLock.release()
             return None
 
