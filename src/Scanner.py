@@ -111,7 +111,6 @@ class Scanner(object):
 
         #End prints
         #loop ended by timeout
-        retVal = False
         if(self._run.is_set()):
 
             #good state
@@ -119,29 +118,27 @@ class Scanner(object):
                 sys.stdout.write("Timeout.\r\n")
                 sys.stdout.flush()
                 log.info("Timeout.")
-                return True
-
-            #bad states
-            if(frameI == 0):
-                if(state == SCANNER_STATE_CONNECT):
-                    errMessage = "Timeout. Could not connect to stream (demuxing problem)."
-                else:
-                    errMessage = "Timeout. Could not read or decode packets (corrupted stream)."
             else:
-                errMessage = "Timeout. Could not find or decode qr code (code not in stream)."
+                #bad states
+                if(frameI == 0):
+                    if(state == SCANNER_STATE_CONNECT):
+                        errMessage = "Timeout. Could not connect to stream (demuxing problem)."
+                    else:
+                        errMessage = "Timeout. Could not read or decode packets (corrupted stream)."
+                else:
+                    errMessage = "Timeout. Could not find or decode qr code (code not in stream)."
 
-            log.error(errMessage)
-            sys.stderr.write(errMessage + "\n")
-            sys.stderr.flush()
+                log.error(errMessage)
+                sys.stderr.write(errMessage + "\n")
+                sys.stderr.flush()
         else:
             #Ended by signal?
             log.info("Scanner._main_loop: Scanning interrupted before timeout.")
             sys.stderr.write("Scanning interrupted before timeout.\n")
             sys.stderr.flush()
-            retVal = (len(self._foundCodes) > 0)
 
         #clean after yourself
         self._streamReader.stop()
 
         log.debug("Scanner.stop: Scanner stopped")
-        return retVal
+        return (len(self._foundCodes) > 0)
