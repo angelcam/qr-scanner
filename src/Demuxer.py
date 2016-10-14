@@ -66,9 +66,13 @@ class Demuxer(object):
 
         self._ctxLock.release()
 
-        log.info("Demuxer.start: Demuxer started.")
+        if self._videoStreamId != None:
+            log.info("Demuxer.start: Demuxer started.")
+            return True
+        else:
+            log.info("Demuxer.start: Cannot find video substream. Stream has no video substream or is corrupted.")
+            return False
 
-        return True
 
     def stop(self):
         if(not self._run.is_set()):

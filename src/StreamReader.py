@@ -69,7 +69,7 @@ class StreamReader(object):
                     self._stop()
                     while(self._run.is_set() and not self._start()):
                         self._stop()
-                        time.sleep(1)
+                        time.sleep(5)
                 continue
 
             if(packet.pkt.stream_index != self._demuxer.get_video_stream_id()):
@@ -129,6 +129,7 @@ class StreamReader(object):
     def _start(self):
 
         if(not self._demuxer.start()):
+            log.debug("Decoder.start: Cannot start demuxer.")
             return False
 
         if(self._decoder.start(self._demuxer.get_context(), self._demuxer.get_video_stream_id())):
