@@ -14,7 +14,7 @@ RUN mkdir /root/tmp/
 ADD . /root/tmp/qr-scanner/
 
 #install requirements via pip
- RUN pip install -r /root/tmp/qr-scanner/requirements.txt
+ RUN pip install --upgrade -r /root/tmp/qr-scanner/requirements.txt
 
 #install av9.py actualization and qr-scanner
 RUN cp /root/tmp/qr-scanner/src/avpy/av9.py /usr/local/lib/python2.7/dist-packages/avpy/version/ \
