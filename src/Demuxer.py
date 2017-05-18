@@ -40,7 +40,7 @@ class Demuxer(object):
         self._inFormatCtx.contents.interrupt_callback = interruptStruct
 
         self._set_timeout(config.DEMUXER_TIMEOUT_OPEN_INPUT)
-        ret = avpy.av.lib.avformat_open_input(ctypes.byref(self._inFormatCtx), self._address, None, None)
+        ret = avpy.av.lib.avformat_open_input(ctypes.byref(self._inFormatCtx), self._address.encode(), None, None)
         if(ret < 0):
             if(self.timeout_signal):
                  log.error("Demuxer.start: Could not open input. Timeout. " + str(config.DEMUXER_TIMEOUT_OPEN_INPUT) + "s.")
