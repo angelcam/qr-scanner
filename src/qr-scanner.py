@@ -17,12 +17,11 @@ def signal_handler(signal, frame):
         scanner.stop()
 
 def main():
-
     #configure logging
     log.start("qr-scanner")
     log.set_min_level(config.LOG_LEVEL)
     if(len(sys.argv) >= 4):
-        if(sys.argv[3] == "writeDebug"):
+        if(sys.argv[3].lower() == "writedebug"):
             log.set_output_writing(True)
             log.set_min_level(logger.DEBUG)
             avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_VERBOSE)
@@ -38,7 +37,7 @@ def main():
         sys.stderr.write("main: Bad number of parameters. (" + str(len(sys.argv)) + ")\n"
                          "Usage: qr-scanner streamAddress [timeout_seconds] [logger_level]\n"
                          "default_timeout: " + str(config.TIMEOUT_S) + "s."
-                         "writeDebug: for debug level syslog and stdout\n")
+                         "writedebug: for debug level syslog and stdout\n")
         log.error("main: Bad number of parameters. Usage: qr-scanner streamAddress [timeout_seconds] [logger_level]\n"\
                 "default_timeout: " + str(config.TIMEOUT_S) + "s."
                 "writeDebug: for debug level syslog and stdout")
@@ -64,15 +63,12 @@ def main():
 
     if(scanner.is_running()):
         scanner.stop()
-    log.info("END of main.")
 
-    if(ret):
-        exit(0)
-    else:
-        exit(1)
+    log.info("END of main.")
+    return not ret
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
 
 

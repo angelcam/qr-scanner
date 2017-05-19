@@ -27,6 +27,9 @@ if 'AVPY_AVCODEC' in os.environ:
     libswscale = os.environ.get('AVPY_SWSCALE')
     if not libswscale:
         libswscale = os.path.join(fold, re.sub('avcodec', 'swscale', base))
+    libswresample = os.environ.get('AVPY_SWRESAMPLE')
+    if not libswresample:
+        libswresample = os.path.join(fold, re.sub('avcodec', 'swresample', base))
     libavcodec = os.environ['AVPY_AVCODEC']
 else:
     libavutil = util.find_library('avutil')
@@ -34,83 +37,97 @@ else:
     libavformat = util.find_library('avformat')
     libavdevice = util.find_library('avdevice')
     libswscale = util.find_library('swscale')
+    libswresample = util.find_library('swresample')
 
 CDLL(libavutil, RTLD_GLOBAL)
 _libraries = {}
 _libraries['libavutil.so'] = CDLL(libavutil, mode=RTLD_GLOBAL)
+_libraries['libswresample.so'] = CDLL(libswresample, mode=RTLD_GLOBAL)
 _libraries['libavcodec.so'] = CDLL(libavcodec, mode=RTLD_GLOBAL)
 _libraries['libavformat.so'] = CDLL(libavformat, mode=RTLD_GLOBAL)
 _libraries['libavdevice.so'] = CDLL(libavdevice, mode=RTLD_GLOBAL)
 _libraries['libswscale.so'] = CDLL(libswscale, mode=RTLD_GLOBAL)
+_libraries['name'] = 'ffmpeg'
+_libraries['version'] = 2.8
 
 STRING = c_char_p
-size_t = c_ulong
 AVPixelFormat = c_int # enum
+size_t = c_ulong
 AVCodecID = c_int # enum
 AVMediaType = c_int # enum
 AVDiscard = c_int # enum
+AVAudioServiceType = c_int # enum
+int16_t = c_int16
+AVPacketSideDataType = c_int # enum
+uint8_t = c_uint8
+int64_t = c_int64
+AVFieldOrder = c_int # enum
+AVSampleFormat = c_int # enum
+uint64_t = c_uint64
+uint16_t = c_uint16
+uint32_t = c_uint32
 AVColorPrimaries = c_int # enum
 AVColorTransferCharacteristic = c_int # enum
 AVColorSpace = c_int # enum
 AVColorRange = c_int # enum
 AVChromaLocation = c_int # enum
-AVAudioServiceType = c_int # enum
-int16_t = c_int16
-AVPacketSideDataType = c_int # enum
-int64_t = c_int64
-uint8_t = c_uint8
-AVPictureType = c_int # enum
-int8_t = c_int8
-uint32_t = c_uint32
-uint64_t = c_uint64
-AVFieldOrder = c_int # enum
-AVSampleFormat = c_int # enum
-uint16_t = c_uint16
 AVSubtitleType = c_int # enum
+AVPictureStructure = c_int # enum
 AVStreamParseType = c_int # enum
+AVPictureType = c_int # enum
+AVFrameSideDataType = c_int # enum
+int8_t = c_int8
 int32_t = c_int32
 
-AVMEDIA_TYPE_VIDEO = 0
+AV_ROUND_UP = 3
 PIX_FMT_NONE = -1
-AV_SAMPLE_FMT_S16 = 1
-CODEC_ID_NONE = 0
 PIX_FMT_YUV420P = 0
-AVMEDIA_TYPE_SUBTITLE = 3
-AVMEDIA_TYPE_AUDIO = 1
-AV_SAMPLE_FMT_NONE = -1
-SUBTITLE_ASS = 3
-SUBTITLE_TEXT = 2
 PIX_FMT_RGB24 = 2
-PIX_FMT_GRAY8 = 8
-SUBTITLE_BITMAP = 1
 CODEC_ID_MPEG2VIDEO = 2
 CODEC_ID_MPEG1VIDEO = 1
 SUBTITLE_NONE = 0
+AV_CODEC_CAP_AUTO_THREADS = 32768 # Variable c_int '32768'
+CODEC_CAP_AUTO_THREADS = AV_CODEC_CAP_AUTO_THREADS # alias
+AV_CODEC_CAP_SLICE_THREADS = 8192 # Variable c_int '8192'
+CODEC_CAP_SLICE_THREADS = AV_CODEC_CAP_SLICE_THREADS # alias
+AV_CODEC_CAP_FRAME_THREADS = 4096 # Variable c_int '4096'
+CODEC_CAP_FRAME_THREADS = AV_CODEC_CAP_FRAME_THREADS # alias
+CODEC_ID_NONE = 0
+SUBTITLE_TEXT = 2
+SUBTITLE_BITMAP = 1
+AVMEDIA_TYPE_VIDEO = 0
+SUBTITLE_ASS = 3
+AVMEDIA_TYPE_SUBTITLE = 3
+AVMEDIA_TYPE_AUDIO = 1
+AV_CODEC_FLAG_GLOBAL_HEADER = 4194304 # Variable c_int '4194304'
+CODEC_FLAG_GLOBAL_HEADER = AV_CODEC_FLAG_GLOBAL_HEADER # alias
+AV_SAMPLE_FMT_S16 = 1
+AV_SAMPLE_FMT_NONE = -1
 AVSEEK_FLAG_BACKWARD = 1 # Variable c_int '1'
 SWS_BILINEAR = 2 # Variable c_int '2'
-AVFMT_GLOBALHEADER = 64 # Variable c_int '64'
-CODEC_CAP_AUTO_THREADS = 32768 # Variable c_int '32768'
-AV_PKT_FLAG_KEY = 1 # Variable c_int '1'
-CODEC_FLAG_GLOBAL_HEADER = 4194304 # Variable c_int '4194304'
-CODEC_CAP_SLICE_THREADS = 8192 # Variable c_int '8192'
-AVFMT_NOFILE = 1 # Variable c_int '1'
-AVIO_FLAG_WRITE = 2 # Variable c_int '2'
-FF_COMPLIANCE_STRICT = 1 # Variable c_int '1'
-AV_DICT_IGNORE_SUFFIX = 2 # Variable c_int '2'
-FF_COMPLIANCE_NORMAL = 0 # Variable c_int '0'
-AV_LOG_QUIET = -8 # Variable c_int '-0x00000000000000008'
-AVSEEK_FLAG_FRAME = 8 # Variable c_int '8'
-AVSEEK_FLAG_BYTE = 2 # Variable c_int '2'
+SWS_LANCZOS = 512 # Variable c_int '512'
+SWS_FAST_BILINEAR = 1 # Variable c_int '1'
 AVSEEK_FLAG_ANY = 4 # Variable c_int '4'
+SWS_AREA = 32 # Variable c_int '32'
+AVFMT_GLOBALHEADER = 64 # Variable c_int '64'
+AV_PKT_FLAG_KEY = 1 # Variable c_int '1'
+AVSEEK_FLAG_FRAME = 8 # Variable c_int '8'
+FF_COMPLIANCE_NORMAL = 0 # Variable c_int '0'
+SWS_BICUBIC = 4 # Variable c_int '4'
+AVFMT_NOFILE = 1 # Variable c_int '1'
+SWS_SINC = 256 # Variable c_int '256'
+SWS_GAUSS = 128 # Variable c_int '128'
+AVIO_FLAG_WRITE = 2 # Variable c_int '2'
+AV_DICT_IGNORE_SUFFIX = 2 # Variable c_int '2'
+AVSEEK_FLAG_BYTE = 2 # Variable c_int '2'
 AV_TIME_BASE = 1000000 # Variable c_int '1000000'
-CODEC_CAP_FRAME_THREADS = 4096 # Variable c_int '4096'
-
-AV_NOPTS_VALUE = 9223372036854775808 # Variable c_ulong '-9223372036854775808ul'
-
+FF_COMPLIANCE_STRICT = 1 # Variable c_int '1'
+AV_LOG_QUIET = -8 # Variable c_int '-0x00000000000000008'
 AV_LOG_VERBOSE = 40
+SWS_BICUBLIN = 64 # Variable c_int '64'
+SWS_SPLINE = 1024 # Variable c_int '1024'
 
-class N8AVPacket4DOT_30E(Structure):
-	pass
+AV_NOPTS_VALUE = -9223372036854775808 # Variable c_long '-0x08000000000000000'
 
 class N8AVStream4DOT_30E(Structure):
 	pass
@@ -232,10 +249,63 @@ class AVSubtitle(Structure):
 class AVSubtitleRect(Structure):
 	pass
 
-PixelFormat = AVPixelFormat # alias
-CodecID = AVCodecID # alias
-AVOptionType = c_int # enum
+class AVCodecDescriptor(Structure):
+	pass
 
+class AVOptionRanges(Structure):
+	pass
+
+class AVOptionRange(Structure):
+	pass
+
+class SwrContext(Structure):
+	pass
+
+class AVBufferRef(Structure):
+	pass
+
+class AVPacketSideData(Structure):
+	pass
+
+class MpegEncContext(Structure):
+	pass
+
+class AVDeviceInfo(Structure):
+	pass
+
+class AVDeviceInfoList(Structure):
+	pass
+
+class AVDeviceCapabilitiesQuery(Structure):
+	pass
+
+class AVFormatInternal(Structure):
+	pass
+
+class AVBuffer(Structure):
+	pass
+
+class AVFrameSideData(Structure):
+	pass
+
+class FFFrac(Structure):
+	pass
+
+PixelFormat = AVPixelFormat # alias
+AVOptionType = c_int # enum
+av_format_control_message = CFUNCTYPE(c_int, POINTER(AVFormatContext), c_int, c_void_p, size_t)
+AVDurationEstimationMethod = c_int # enum
+AVClassCategory = c_int # enum
+AVRounding = c_int # enum
+
+AVCodecDescriptor._fields_ = [
+    ('id', AVCodecID),
+    ('type', AVMediaType),
+    ('name', STRING),
+    ('long_name', STRING),
+    ('props', c_int),
+    ('mime_types', POINTER(STRING)),
+]
 RcOverride._fields_ = [
     ('start_frame', c_int),
     ('end_frame', c_int),
@@ -248,73 +318,26 @@ AVPanScan._fields_ = [
     ('height', c_int),
     ('position', int16_t * 2 * 3),
 ]
+AVPacketSideData._fields_ = [
+    ('data', POINTER(uint8_t)),
+    ('size', c_int),
+    ('type', AVPacketSideDataType),
+]
 AVPacket._fields_ = [
+    ('buf', POINTER(AVBufferRef)),
     ('pts', int64_t),
     ('dts', int64_t),
     ('data', POINTER(uint8_t)),
     ('size', c_int),
     ('stream_index', c_int),
     ('flags', c_int),
-    ('side_data', POINTER(N8AVPacket4DOT_30E)),
+    ('side_data', POINTER(AVPacketSideData)),
     ('side_data_elems', c_int),
     ('duration', c_int),
     ('destruct', CFUNCTYPE(None, POINTER(AVPacket))),
     ('priv', c_void_p),
     ('pos', int64_t),
     ('convergence_duration', int64_t),
-]
-N8AVPacket4DOT_30E._fields_ = [
-    ('data', POINTER(uint8_t)),
-    ('size', c_int),
-    ('type', AVPacketSideDataType),
-]
-AVRational._fields_ = [
-    ('num', c_int),
-    ('den', c_int),
-]
-AVFrame._fields_ = [
-    ('data', POINTER(uint8_t) * 8),
-    ('linesize', c_int * 8),
-    ('extended_data', POINTER(POINTER(uint8_t))),
-    ('width', c_int),
-    ('height', c_int),
-    ('nb_samples', c_int),
-    ('format', c_int),
-    ('key_frame', c_int),
-    ('pict_type', AVPictureType),
-    ('base', POINTER(uint8_t) * 8),
-    ('sample_aspect_ratio', AVRational),
-    ('pts', int64_t),
-    ('pkt_pts', int64_t),
-    ('pkt_dts', int64_t),
-    ('coded_picture_number', c_int),
-    ('display_picture_number', c_int),
-    ('quality', c_int),
-    ('reference', c_int),
-    ('qscale_table', POINTER(int8_t)),
-    ('qstride', c_int),
-    ('qscale_type', c_int),
-    ('mbskip_table', POINTER(uint8_t)),
-    ('motion_val', POINTER(int16_t * 2) * 2),
-    ('mb_type', POINTER(uint32_t)),
-    ('dct_coeff', POINTER(c_short)),
-    ('ref_index', POINTER(int8_t) * 2),
-    ('opaque', c_void_p),
-    ('error', uint64_t * 8),
-    ('type', c_int),
-    ('repeat_pict', c_int),
-    ('interlaced_frame', c_int),
-    ('top_field_first', c_int),
-    ('palette_has_changed', c_int),
-    ('buffer_hints', c_int),
-    ('pan_scan', POINTER(AVPanScan)),
-    ('reordered_opaque', int64_t),
-    ('hwaccel_picture_private', c_void_p),
-    ('owner', POINTER(AVCodecContext)),
-    ('thread_opaque', c_void_p),
-    ('motion_subsample_log2', uint8_t),
-    ('sample_rate', c_int),
-    ('channel_layout', uint64_t),
 ]
 AVCodecInternal._fields_ = [
 ]
@@ -352,6 +375,11 @@ AVCodec._fields_ = [
     ('decode', CFUNCTYPE(c_int, POINTER(AVCodecContext), c_void_p, POINTER(c_int), POINTER(AVPacket))),
     ('close', CFUNCTYPE(c_int, POINTER(AVCodecContext))),
     ('flush', CFUNCTYPE(None, POINTER(AVCodecContext))),
+    ('caps_internal', c_int),
+]
+AVRational._fields_ = [
+    ('num', c_int),
+    ('den', c_int),
 ]
 AVCodecContext._fields_ = [
     ('av_class', POINTER(AVClass)),
@@ -362,7 +390,6 @@ AVCodecContext._fields_ = [
     ('codec_id', AVCodecID),
     ('codec_tag', c_uint),
     ('stream_codec_tag', c_uint),
-    ('sub_id', c_int),
     ('priv_data', c_void_p),
     ('internal', POINTER(AVCodecInternal)),
     ('opaque', c_void_p),
@@ -390,8 +417,6 @@ AVCodecContext._fields_ = [
     ('b_quant_factor', c_float),
     ('rc_strategy', c_int),
     ('b_frame_strategy', c_int),
-    ('luma_elim_threshold', c_int),
-    ('chroma_elim_threshold', c_int),
     ('b_quant_offset', c_float),
     ('has_b_frames', c_int),
     ('mpeg_quant', c_int),
@@ -420,7 +445,6 @@ AVCodecContext._fields_ = [
     ('me_range', c_int),
     ('intra_quant_bias', c_int),
     ('inter_quant_bias', c_int),
-    ('color_table_id', c_int),
     ('slice_flags', c_int),
     ('xvmc_acceleration', c_int),
     ('mb_decision', c_int),
@@ -428,8 +452,6 @@ AVCodecContext._fields_ = [
     ('inter_matrix', POINTER(uint16_t)),
     ('scenechange_threshold', c_int),
     ('noise_reduction', c_int),
-    ('inter_threshold', c_int),
-    ('quantizer_noise_shaping', c_int),
     ('me_threshold', c_int),
     ('mb_threshold', c_int),
     ('intra_dc_precision', c_int),
@@ -469,6 +491,8 @@ AVCodecContext._fields_ = [
     ('get_buffer', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(AVFrame))),
     ('release_buffer', CFUNCTYPE(None, POINTER(AVCodecContext), POINTER(AVFrame))),
     ('reget_buffer', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(AVFrame))),
+    ('get_buffer2', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(AVFrame), c_int)),
+    ('refcounted_frames', c_int),
     ('qcompress', c_float),
     ('qblur', c_float),
     ('qmin', c_int),
@@ -525,7 +549,6 @@ AVCodecContext._fields_ = [
     ('error', uint64_t * 8),
     ('dct_algo', c_int),
     ('idct_algo', c_int),
-    ('dsp_mask', c_uint),
     ('bits_per_coded_sample', c_int),
     ('bits_per_raw_sample', c_int),
     ('lowres', c_int),
@@ -548,12 +571,32 @@ AVCodecContext._fields_ = [
     ('error_rate', c_int),
     ('pkt', POINTER(AVPacket)),
     ('vbv_delay', uint64_t),
+    ('side_data_only_packets', c_int),
+    ('initial_padding', c_int),
+    ('framerate', AVRational),
+    ('sw_pix_fmt', AVPixelFormat),
+    ('pkt_timebase', AVRational),
+    ('codec_descriptor', POINTER(AVCodecDescriptor)),
+    ('pts_correction_num_faulty_pts', int64_t),
+    ('pts_correction_num_faulty_dts', int64_t),
+    ('pts_correction_last_pts', int64_t),
+    ('pts_correction_last_dts', int64_t),
+    ('sub_charenc', STRING),
+    ('sub_charenc_mode', c_int),
+    ('skip_alpha', c_int),
+    ('seek_preroll', c_int),
+    ('chroma_intra_matrix', POINTER(uint16_t)),
+    ('dump_separator', POINTER(uint8_t)),
+    ('codec_whitelist', STRING),
+    ('properties', c_uint),
 ]
 AVProfile._fields_ = [
     ('profile', c_int),
     ('name', STRING),
 ]
 AVCodecDefault._fields_ = [
+]
+MpegEncContext._fields_ = [
 ]
 AVHWAccel._fields_ = [
     ('name', STRING),
@@ -562,9 +605,14 @@ AVHWAccel._fields_ = [
     ('pix_fmt', AVPixelFormat),
     ('capabilities', c_int),
     ('next', POINTER(AVHWAccel)),
+    ('alloc_frame', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(AVFrame))),
     ('start_frame', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(uint8_t), uint32_t)),
     ('decode_slice', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(uint8_t), uint32_t)),
     ('end_frame', CFUNCTYPE(c_int, POINTER(AVCodecContext))),
+    ('frame_priv_data_size', c_int),
+    ('decode_mb', CFUNCTYPE(None, POINTER(MpegEncContext))),
+    ('init', CFUNCTYPE(c_int, POINTER(AVCodecContext))),
+    ('uninit', CFUNCTYPE(c_int, POINTER(AVCodecContext))),
     ('priv_data_size', c_int),
 ]
 AVPicture._fields_ = [
@@ -612,6 +660,14 @@ AVCodecParserContext._fields_ = [
     ('pos', int64_t),
     ('last_pos', int64_t),
     ('duration', c_int),
+    ('field_order', AVFieldOrder),
+    ('picture_structure', AVPictureStructure),
+    ('output_picture_number', c_int),
+    ('width', c_int),
+    ('height', c_int),
+    ('coded_width', c_int),
+    ('coded_height', c_int),
+    ('format', c_int),
 ]
 AVCodecParser._fields_ = [
     ('codec_ids', c_int * 5),
@@ -621,6 +677,47 @@ AVCodecParser._fields_ = [
     ('parser_close', CFUNCTYPE(None, POINTER(AVCodecParserContext))),
     ('split', CFUNCTYPE(c_int, POINTER(AVCodecContext), POINTER(uint8_t), c_int)),
     ('next', POINTER(AVCodecParser)),
+]
+AVDeviceCapabilitiesQuery._fields_ = [
+    ('av_class', POINTER(AVClass)),
+    ('device_context', POINTER(AVFormatContext)),
+    ('codec', AVCodecID),
+    ('sample_format', AVSampleFormat),
+    ('pixel_format', AVPixelFormat),
+    ('sample_rate', c_int),
+    ('channels', c_int),
+    ('channel_layout', int64_t),
+    ('window_width', c_int),
+    ('window_height', c_int),
+    ('frame_width', c_int),
+    ('frame_height', c_int),
+    ('fps', AVRational),
+]
+N8AVOption4DOT_30E._fields_ = [
+    ('i64', int64_t),
+    ('dbl', c_double),
+    ('str', STRING),
+    ('q', AVRational),
+]
+AVOption._fields_ = [
+    ('name', STRING),
+    ('help', STRING),
+    ('offset', c_int),
+    ('type', AVOptionType),
+    ('default_val', N8AVOption4DOT_30E),
+    ('min', c_double),
+    ('max', c_double),
+    ('flags', c_int),
+    ('unit', STRING),
+]
+AVDeviceInfo._fields_ = [
+    ('device_name', STRING),
+    ('device_description', STRING),
+]
+AVDeviceInfoList._fields_ = [
+    ('devices', POINTER(POINTER(AVDeviceInfo))),
+    ('nb_devices', c_int),
+    ('default_device', c_int),
 ]
 AVFrac._fields_ = [
     ('val', int64_t),
@@ -633,6 +730,7 @@ AVProbeData._fields_ = [
     ('filename', STRING),
     ('buf', POINTER(c_ubyte)),
     ('buf_size', c_int),
+    ('mime_type', STRING),
 ]
 AVOutputFormat._fields_ = [
     ('name', STRING),
@@ -652,6 +750,13 @@ AVOutputFormat._fields_ = [
     ('write_trailer', CFUNCTYPE(c_int, POINTER(AVFormatContext))),
     ('interleave_packet', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVPacket), POINTER(AVPacket), c_int)),
     ('query_codec', CFUNCTYPE(c_int, AVCodecID, c_int)),
+    ('get_output_timestamp', CFUNCTYPE(None, POINTER(AVFormatContext), c_int, POINTER(int64_t), POINTER(int64_t))),
+    ('control_message', CFUNCTYPE(c_int, POINTER(AVFormatContext), c_int, c_void_p, size_t)),
+    ('write_uncoded_frame', CFUNCTYPE(c_int, POINTER(AVFormatContext), c_int, POINTER(POINTER(AVFrame)), c_uint)),
+    ('get_device_list', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVDeviceInfoList))),
+    ('create_device_capabilities', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVDeviceCapabilitiesQuery))),
+    ('free_device_capabilities', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVDeviceCapabilitiesQuery))),
+    ('data_codec', AVCodecID),
 ]
 AVInputFormat._fields_ = [
     ('name', STRING),
@@ -660,6 +765,7 @@ AVInputFormat._fields_ = [
     ('extensions', STRING),
     ('codec_tag', POINTER(POINTER(AVCodecTag))),
     ('priv_class', POINTER(AVClass)),
+    ('mime_type', STRING),
     ('next', POINTER(AVInputFormat)),
     ('raw_codec_id', c_int),
     ('priv_data_size', c_int),
@@ -672,6 +778,9 @@ AVInputFormat._fields_ = [
     ('read_play', CFUNCTYPE(c_int, POINTER(AVFormatContext))),
     ('read_pause', CFUNCTYPE(c_int, POINTER(AVFormatContext))),
     ('read_seek2', CFUNCTYPE(c_int, POINTER(AVFormatContext), c_int, int64_t, int64_t, int64_t, c_int)),
+    ('get_device_list', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVDeviceInfoList))),
+    ('create_device_capabilities', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVDeviceCapabilitiesQuery))),
+    ('free_device_capabilities', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(AVDeviceCapabilitiesQuery))),
 ]
 AVIndexEntry._fields_ = [
     ('pos', int64_t),
@@ -684,7 +793,6 @@ AVStream._fields_ = [
     ('index', c_int),
     ('id', c_int),
     ('codec', POINTER(AVCodecContext)),
-    ('r_frame_rate', AVRational),
     ('priv_data', c_void_p),
     ('pts', AVFrac),
     ('time_base', AVRational),
@@ -697,9 +805,11 @@ AVStream._fields_ = [
     ('metadata', POINTER(AVDictionary)),
     ('avg_frame_rate', AVRational),
     ('attached_pic', AVPacket),
+    ('side_data', POINTER(AVPacketSideData)),
+    ('nb_side_data', c_int),
+    ('event_flags', c_int),
     ('info', POINTER(N8AVStream4DOT_30E)),
     ('pts_wrap_bits', c_int),
-    ('reference_dts', int64_t),
     ('first_dts', int64_t),
     ('cur_dts', int64_t),
     ('last_IP_pts', int64_t),
@@ -714,18 +824,47 @@ AVStream._fields_ = [
     ('index_entries', POINTER(AVIndexEntry)),
     ('nb_index_entries', c_int),
     ('index_entries_allocated_size', c_uint),
+    ('r_frame_rate', AVRational),
+    ('stream_identifier', c_int),
+    ('interleaver_chunk_size', int64_t),
+    ('interleaver_chunk_duration', int64_t),
+    ('request_probe', c_int),
+    ('skip_to_keyframe', c_int),
+    ('skip_samples', c_int),
+    ('start_skip_samples', int64_t),
+    ('first_discard_sample', int64_t),
+    ('last_discard_sample', int64_t),
+    ('nb_decoded_frames', c_int),
+    ('mux_ts_offset', int64_t),
+    ('pts_wrap_reference', int64_t),
+    ('pts_wrap_behavior', c_int),
+    ('update_initial_durations_done', c_int),
+    ('pts_reorder_error', int64_t * 17),
+    ('pts_reorder_error_count', uint8_t * 17),
+    ('last_dts_for_order_check', int64_t),
+    ('dts_ordered', uint8_t),
+    ('dts_misordered', uint8_t),
+    ('inject_global_side_data', c_int),
+    ('recommended_encoder_configuration', STRING),
+    ('display_aspect_ratio', AVRational),
+    ('priv_pts', POINTER(FFFrac)),
 ]
 N8AVStream4DOT_30E._fields_ = [
     ('last_dts', int64_t),
     ('duration_gcd', int64_t),
     ('duration_count', c_int),
-    ('duration_error', c_double * 725),
-    ('nb_decoded_frames', c_int),
+    ('rfps_duration_sum', int64_t),
+    ('duration_error', POINTER(c_double * 373 * 2)),
+    ('codec_info_duration', int64_t),
+    ('codec_info_duration_fields', int64_t),
     ('found_decoder', c_int),
+    ('last_duration', int64_t),
     ('fps_first_dts', int64_t),
     ('fps_first_dts_idx', c_int),
     ('fps_last_dts', int64_t),
     ('fps_last_dts_idx', c_int),
+]
+FFFrac._fields_ = [
 ]
 AVProgram._fields_ = [
     ('id', c_int),
@@ -734,6 +873,13 @@ AVProgram._fields_ = [
     ('stream_index', POINTER(c_uint)),
     ('nb_stream_indexes', c_uint),
     ('metadata', POINTER(AVDictionary)),
+    ('program_num', c_int),
+    ('pmt_pid', c_int),
+    ('pcr_pid', c_int),
+    ('start_time', int64_t),
+    ('end_time', int64_t),
+    ('pts_wrap_reference', int64_t),
+    ('pts_wrap_behavior', c_int),
 ]
 AVChapter._fields_ = [
     ('id', c_int),
@@ -741,6 +887,8 @@ AVChapter._fields_ = [
     ('start', int64_t),
     ('end', int64_t),
     ('metadata', POINTER(AVDictionary)),
+]
+AVFormatInternal._fields_ = [
 ]
 AVIOInterruptCB._fields_ = [
     ('callback', CFUNCTYPE(c_int, c_void_p)),
@@ -781,14 +929,41 @@ AVFormatContext._fields_ = [
     ('error_recognition', c_int),
     ('interrupt_callback', AVIOInterruptCB),
     ('debug', c_int),
-    ('packet_buffer', POINTER(AVPacketList)),
-    ('packet_buffer_end', POINTER(AVPacketList)),
-    ('data_offset', int64_t),
-    ('raw_packet_buffer', POINTER(AVPacketList)),
-    ('raw_packet_buffer_end', POINTER(AVPacketList)),
-    ('parse_queue', POINTER(AVPacketList)),
-    ('parse_queue_end', POINTER(AVPacketList)),
-    ('raw_packet_buffer_remaining_size', c_int),
+    ('max_interleave_delta', int64_t),
+    ('strict_std_compliance', c_int),
+    ('event_flags', c_int),
+    ('max_ts_probe', c_int),
+    ('avoid_negative_ts', c_int),
+    ('ts_id', c_int),
+    ('audio_preload', c_int),
+    ('max_chunk_duration', c_int),
+    ('max_chunk_size', c_int),
+    ('use_wallclock_as_timestamps', c_int),
+    ('avio_flags', c_int),
+    ('duration_estimation_method', AVDurationEstimationMethod),
+    ('skip_initial_bytes', int64_t),
+    ('correct_ts_overflow', c_uint),
+    ('seek2any', c_int),
+    ('flush_packets', c_int),
+    ('probe_score', c_int),
+    ('format_probesize', c_int),
+    ('codec_whitelist', STRING),
+    ('format_whitelist', STRING),
+    ('internal', POINTER(AVFormatInternal)),
+    ('io_repositioned', c_int),
+    ('video_codec', POINTER(AVCodec)),
+    ('audio_codec', POINTER(AVCodec)),
+    ('subtitle_codec', POINTER(AVCodec)),
+    ('data_codec', POINTER(AVCodec)),
+    ('metadata_header_padding', c_int),
+    ('opaque', c_void_p),
+    ('control_message_cb', av_format_control_message),
+    ('output_ts_offset', int64_t),
+    ('max_analyze_duration2', int64_t),
+    ('probesize2', int64_t),
+    ('dump_separator', POINTER(uint8_t)),
+    ('data_codec_id', AVCodecID),
+    ('open_cb', CFUNCTYPE(c_int, POINTER(AVFormatContext), POINTER(POINTER(AVIOContext)), STRING, c_int, POINTER(AVIOInterruptCB), POINTER(POINTER(AVDictionary)))),
 ]
 AVPacketList._fields_ = [
     ('pkt', AVPacket),
@@ -816,6 +991,20 @@ AVIOContext._fields_ = [
     ('read_pause', CFUNCTYPE(c_int, c_void_p, c_int)),
     ('read_seek', CFUNCTYPE(int64_t, c_void_p, c_int, int64_t, c_int)),
     ('seekable', c_int),
+    ('maxsize', int64_t),
+    ('direct', c_int),
+    ('bytes_read', int64_t),
+    ('seek_count', c_int),
+    ('writeout_count', c_int),
+    ('orig_buffer_size', c_int),
+    ('short_seek_threshold', c_int),
+]
+AVBuffer._fields_ = [
+]
+AVBufferRef._fields_ = [
+    ('buffer', POINTER(AVBuffer)),
+    ('data', POINTER(uint8_t)),
+    ('size', c_int),
 ]
 AVDictionaryEntry._fields_ = [
     ('key', STRING),
@@ -823,22 +1012,75 @@ AVDictionaryEntry._fields_ = [
 ]
 AVDictionary._fields_ = [
 ]
-N8AVOption4DOT_30E._fields_ = [
-    ('i64', int64_t),
-    ('dbl', c_double),
-    ('str', STRING),
-    ('q', AVRational),
+AVFrameSideData._fields_ = [
+    ('type', AVFrameSideDataType),
+    ('data', POINTER(uint8_t)),
+    ('size', c_int),
+    ('metadata', POINTER(AVDictionary)),
+    ('buf', POINTER(AVBufferRef)),
 ]
-AVOption._fields_ = [
-    ('name', STRING),
-    ('help', STRING),
-    ('offset', c_int),
-    ('type', AVOptionType),
-    ('default_val', N8AVOption4DOT_30E),
-    ('min', c_double),
-    ('max', c_double),
+AVFrame._fields_ = [
+    ('data', POINTER(uint8_t) * 8),
+    ('linesize', c_int * 8),
+    ('extended_data', POINTER(POINTER(uint8_t))),
+    ('width', c_int),
+    ('height', c_int),
+    ('nb_samples', c_int),
+    ('format', c_int),
+    ('key_frame', c_int),
+    ('pict_type', AVPictureType),
+    ('base', POINTER(uint8_t) * 8),
+    ('sample_aspect_ratio', AVRational),
+    ('pts', int64_t),
+    ('pkt_pts', int64_t),
+    ('pkt_dts', int64_t),
+    ('coded_picture_number', c_int),
+    ('display_picture_number', c_int),
+    ('quality', c_int),
+    ('reference', c_int),
+    ('qscale_table', POINTER(int8_t)),
+    ('qstride', c_int),
+    ('qscale_type', c_int),
+    ('mbskip_table', POINTER(uint8_t)),
+    ('motion_val', POINTER(int16_t * 2) * 2),
+    ('mb_type', POINTER(uint32_t)),
+    ('dct_coeff', POINTER(c_short)),
+    ('ref_index', POINTER(int8_t) * 2),
+    ('opaque', c_void_p),
+    ('error', uint64_t * 8),
+    ('type', c_int),
+    ('repeat_pict', c_int),
+    ('interlaced_frame', c_int),
+    ('top_field_first', c_int),
+    ('palette_has_changed', c_int),
+    ('buffer_hints', c_int),
+    ('pan_scan', POINTER(AVPanScan)),
+    ('reordered_opaque', int64_t),
+    ('hwaccel_picture_private', c_void_p),
+    ('owner', POINTER(AVCodecContext)),
+    ('thread_opaque', c_void_p),
+    ('motion_subsample_log2', uint8_t),
+    ('sample_rate', c_int),
+    ('channel_layout', uint64_t),
+    ('buf', POINTER(AVBufferRef) * 8),
+    ('extended_buf', POINTER(POINTER(AVBufferRef))),
+    ('nb_extended_buf', c_int),
+    ('side_data', POINTER(POINTER(AVFrameSideData))),
+    ('nb_side_data', c_int),
     ('flags', c_int),
-    ('unit', STRING),
+    ('color_range', AVColorRange),
+    ('color_primaries', AVColorPrimaries),
+    ('color_trc', AVColorTransferCharacteristic),
+    ('colorspace', AVColorSpace),
+    ('chroma_location', AVChromaLocation),
+    ('best_effort_timestamp', int64_t),
+    ('pkt_pos', int64_t),
+    ('pkt_duration', int64_t),
+    ('metadata', POINTER(AVDictionary)),
+    ('decode_error_flags', c_int),
+    ('channels', c_int),
+    ('pkt_size', c_int),
+    ('qp_table_buf', POINTER(AVBufferRef)),
 ]
 AVClass._fields_ = [
     ('class_name', STRING),
@@ -849,6 +1091,24 @@ AVClass._fields_ = [
     ('parent_log_context_offset', c_int),
     ('child_next', CFUNCTYPE(c_void_p, c_void_p, c_void_p)),
     ('child_class_next', CFUNCTYPE(POINTER(AVClass), POINTER(AVClass))),
+    ('category', AVClassCategory),
+    ('get_category', CFUNCTYPE(AVClassCategory, c_void_p)),
+    ('query_ranges', CFUNCTYPE(c_int, POINTER(POINTER(AVOptionRanges)), c_void_p, STRING, c_int)),
+]
+AVOptionRange._fields_ = [
+    ('str', STRING),
+    ('value_min', c_double),
+    ('value_max', c_double),
+    ('component_min', c_double),
+    ('component_max', c_double),
+    ('is_range', c_int),
+]
+AVOptionRanges._fields_ = [
+    ('range', POINTER(POINTER(AVOptionRange))),
+    ('nb_ranges', c_int),
+    ('nb_components', c_int),
+]
+SwrContext._fields_ = [
 ]
 SwsVector._fields_ = [
     ('coeff', POINTER(c_double)),
@@ -863,37 +1123,6 @@ SwsFilter._fields_ = [
 SwsContext._fields_ = [
 ]
 
-avcodec_register_all = _libraries['libavcodec.so'].avcodec_register_all
-avcodec_register_all.restype = None
-avcodec_register_all.argtypes = []
-avcodec_copy_context = _libraries['libavcodec.so'].avcodec_copy_context
-avcodec_copy_context.restype = c_int
-avcodec_copy_context.argtypes = [POINTER(AVCodecContext), POINTER(AVCodecContext)]
-av_rescale_q = _libraries['libavutil.so'].av_rescale_q
-av_rescale_q.restype = int64_t
-av_rescale_q.argtypes = [int64_t, AVRational, AVRational]
-av_write_frame = _libraries['libavformat.so'].av_write_frame
-av_write_frame.restype = c_int
-av_write_frame.argtypes = [POINTER(AVFormatContext), POINTER(AVPacket)]
-av_new_packet = _libraries['libavcodec.so'].av_new_packet
-av_new_packet.restype = c_int
-av_new_packet.argtypes = [POINTER(AVPacket)]
-aac_read_packet_type = CFUNCTYPE(c_int, c_void_p, POINTER(uint8_t), c_int)
-aac_write_packet_type = CFUNCTYPE(c_int, c_void_p, POINTER(uint8_t), c_int)
-aac_seek_packet_type = CFUNCTYPE(int64_t, c_void_p, int64_t, c_int)
-avio_alloc_context = _libraries['libavformat.so'].avio_alloc_context
-avio_alloc_context.restype = POINTER(AVIOContext)
-avio_alloc_context.argtypes = [POINTER(c_char), c_int, c_int, c_void_p, aac_read_packet_type, aac_write_packet_type, aac_seek_packet_type]
-sws_getCachedContext = _libraries['libswscale.so'].sws_getCachedContext
-sws_getCachedContext.restype = POINTER(SwsContext)
-sws_getCachedContext.argtypes = [POINTER(SwsContext), c_int, c_int, AVPixelFormat, c_int, c_int, AVPixelFormat, c_int, POINTER(SwsFilter), POINTER(SwsFilter), POINTER(c_double)]
-avformat_network_init = _libraries['libavformat.so'].avformat_network_init
-avformat_network_init.restype = POINTER(c_char)
-avformat_network_init.argtypes = []
-avcodec_free_frame = _libraries['libavcodec.so'].avcodec_free_frame
-avcodec_free_frame.restype = None
-avcodec_free_frame.argtypes = [POINTER(POINTER(AVFrame))]
-
 av_codec_next = _libraries['libavcodec.so'].av_codec_next
 av_codec_next.restype = POINTER(AVCodec)
 av_codec_next.argtypes = [POINTER(AVCodec)]
@@ -906,9 +1135,15 @@ avcodec_configuration.argtypes = []
 avcodec_license = _libraries['libavcodec.so'].avcodec_license
 avcodec_license.restype = STRING
 avcodec_license.argtypes = []
+avcodec_alloc_context3 = _libraries['libavcodec.so'].avcodec_alloc_context3
+avcodec_alloc_context3.restype = POINTER(AVCodecContext)
+avcodec_alloc_context3.argtypes = [POINTER(AVCodec)]
 avcodec_get_context_defaults3 = _libraries['libavcodec.so'].avcodec_get_context_defaults3
 avcodec_get_context_defaults3.restype = c_int
 avcodec_get_context_defaults3.argtypes = [POINTER(AVCodecContext), POINTER(AVCodec)]
+avcodec_copy_context = _libraries['libavcodec.so'].avcodec_copy_context
+avcodec_copy_context.restype = c_int
+avcodec_copy_context.argtypes = [POINTER(AVCodecContext), POINTER(AVCodecContext)]
 avcodec_alloc_frame = _libraries['libavcodec.so'].avcodec_alloc_frame
 avcodec_alloc_frame.restype = POINTER(AVFrame)
 avcodec_alloc_frame.argtypes = []
@@ -930,6 +1165,9 @@ av_init_packet.argtypes = [POINTER(AVPacket)]
 av_free_packet = _libraries['libavcodec.so'].av_free_packet
 av_free_packet.restype = None
 av_free_packet.argtypes = [POINTER(AVPacket)]
+av_packet_move_ref = _libraries['libavcodec.so'].av_packet_move_ref
+av_packet_move_ref.restype = None
+av_packet_move_ref.argtypes = [POINTER(AVPacket), POINTER(AVPacket)]
 avcodec_find_decoder = _libraries['libavcodec.so'].avcodec_find_decoder
 avcodec_find_decoder.restype = POINTER(AVCodec)
 avcodec_find_decoder.argtypes = [AVCodecID]
@@ -1059,9 +1297,21 @@ avutil_configuration.argtypes = []
 avutil_license = _libraries['libavutil.so'].avutil_license
 avutil_license.restype = STRING
 avutil_license.argtypes = []
+av_get_channel_layout = _libraries['libavutil.so'].av_get_channel_layout
+av_get_channel_layout.restype = uint64_t
+av_get_channel_layout.argtypes = [STRING]
+av_get_channel_layout_string = _libraries['libavutil.so'].av_get_channel_layout_string
+av_get_channel_layout_string.restype = None
+av_get_channel_layout_string.argtypes = [STRING, c_int, c_int, uint64_t]
+av_get_channel_layout_nb_channels = _libraries['libavutil.so'].av_get_channel_layout_nb_channels
+av_get_channel_layout_nb_channels.restype = c_int
+av_get_channel_layout_nb_channels.argtypes = [uint64_t]
 av_get_default_channel_layout = _libraries['libavutil.so'].av_get_default_channel_layout
-av_get_default_channel_layout.restype = uint64_t
+av_get_default_channel_layout.restype = int64_t
 av_get_default_channel_layout.argtypes = [c_int]
+av_get_channel_name = _libraries['libavutil.so'].av_get_channel_name
+av_get_channel_name.restype = STRING
+av_get_channel_name.argtypes = [uint64_t]
 av_dict_get = _libraries['libavutil.so'].av_dict_get
 av_dict_get.restype = POINTER(AVDictionaryEntry)
 av_dict_get.argtypes = [POINTER(AVDictionary), STRING, POINTER(AVDictionaryEntry), c_int]
@@ -1074,6 +1324,9 @@ av_strerror.argtypes = [c_int, STRING, size_t]
 av_log_set_level = _libraries['libavutil.so'].av_log_set_level
 av_log_set_level.restype = None
 av_log_set_level.argtypes = [c_int]
+av_rescale_rnd = _libraries['libavutil.so'].av_rescale_rnd
+av_rescale_rnd.restype = int64_t
+av_rescale_rnd.argtypes = [int64_t, int64_t, int64_t, AVRounding]
 av_malloc = _libraries['libavutil.so'].av_malloc
 av_malloc.restype = c_void_p
 av_malloc.argtypes = [size_t]
@@ -1095,9 +1348,39 @@ av_get_sample_fmt.argtypes = [STRING]
 av_get_bytes_per_sample = _libraries['libavutil.so'].av_get_bytes_per_sample
 av_get_bytes_per_sample.restype = c_int
 av_get_bytes_per_sample.argtypes = [AVSampleFormat]
+av_sample_fmt_is_planar = _libraries['libavutil.so'].av_sample_fmt_is_planar
+av_sample_fmt_is_planar.restype = c_int
+av_sample_fmt_is_planar.argtypes = [AVSampleFormat]
 av_samples_get_buffer_size = _libraries['libavutil.so'].av_samples_get_buffer_size
 av_samples_get_buffer_size.restype = c_int
 av_samples_get_buffer_size.argtypes = [POINTER(c_int), c_int, c_int, AVSampleFormat, c_int]
+swr_alloc = _libraries['libswresample.so'].swr_alloc
+swr_alloc.restype = POINTER(SwrContext)
+swr_alloc.argtypes = []
+swr_init = _libraries['libswresample.so'].swr_init
+swr_init.restype = c_int
+swr_init.argtypes = [POINTER(SwrContext)]
+swr_alloc_set_opts = _libraries['libswresample.so'].swr_alloc_set_opts
+swr_alloc_set_opts.restype = POINTER(SwrContext)
+swr_alloc_set_opts.argtypes = [POINTER(SwrContext), int64_t, AVSampleFormat, c_int, int64_t, AVSampleFormat, c_int, c_int, c_void_p]
+swr_free = _libraries['libswresample.so'].swr_free
+swr_free.restype = None
+swr_free.argtypes = [POINTER(POINTER(SwrContext))]
+swr_convert = _libraries['libswresample.so'].swr_convert
+swr_convert.restype = c_int
+swr_convert.argtypes = [POINTER(SwrContext), POINTER(POINTER(uint8_t)), c_int, POINTER(POINTER(uint8_t)), c_int]
+swr_get_delay = _libraries['libswresample.so'].swr_get_delay
+swr_get_delay.restype = int64_t
+swr_get_delay.argtypes = [POINTER(SwrContext), int64_t]
+swresample_version = _libraries['libswresample.so'].swresample_version
+swresample_version.restype = c_uint
+swresample_version.argtypes = []
+swresample_configuration = _libraries['libswresample.so'].swresample_configuration
+swresample_configuration.restype = STRING
+swresample_configuration.argtypes = []
+swresample_license = _libraries['libswresample.so'].swresample_license
+swresample_license.restype = STRING
+swresample_license.argtypes = []
 swscale_version = _libraries['libswscale.so'].swscale_version
 swscale_version.restype = c_uint
 swscale_version.argtypes = []
@@ -1117,3 +1400,39 @@ sws_scale = _libraries['libswscale.so'].sws_scale
 sws_scale.restype = c_int
 sws_scale.argtypes = [POINTER(SwsContext), POINTER(POINTER(uint8_t)), POINTER(c_int), c_int, c_int, POINTER(POINTER(uint8_t)), POINTER(c_int)]
 
+# methods added for mp4 edge and qr scanner
+AV_PIX_FMT_GRAY8 = 8
+avcodec_register_all = _libraries['libavcodec.so'].avcodec_register_all
+avcodec_register_all.restype = None
+avcodec_register_all.argtypes = []
+avformat_network_init = _libraries['libavformat.so'].avformat_network_init
+avformat_network_init.restype = c_int
+avformat_network_init.argtypes = []
+log_callback_type = CFUNCTYPE(None, c_void_p, c_int, STRING, c_void_p)
+av_log_set_callback = _libraries['libavutil.so'].av_log_set_callback
+av_log_set_callback.restype = None
+av_log_set_callback.argtypes = [log_callback_type]
+av_log_default_callback = _libraries['libavutil.so'].av_log_default_callback
+av_log_default_callback.restype = None
+av_log_default_callback.argtypes = [c_void_p, c_int, STRING, c_void_p]
+av_new_packet = _libraries['libavcodec.so'].av_new_packet
+av_new_packet.restype = c_int
+av_new_packet.argtypes = [POINTER(AVPacket), c_int]
+aac_read_packet_type = CFUNCTYPE(c_int, c_void_p, POINTER(uint8_t), c_int)
+aac_write_packet_type = CFUNCTYPE(c_int, c_void_p, POINTER(uint8_t), c_int)
+aac_seek_packet_type = CFUNCTYPE(int64_t, c_void_p, int64_t, c_int)
+avio_alloc_context = _libraries['libavformat.so'].avio_alloc_context
+avio_alloc_context.restype = POINTER(AVIOContext)
+avio_alloc_context.argtypes = [POINTER(c_char), c_int, c_int, c_void_p, aac_read_packet_type, aac_write_packet_type, aac_seek_packet_type]
+av_rescale_q = _libraries['libavutil.so'].av_rescale_q
+av_rescale_q.restype = int64_t
+av_rescale_q.argtypes = [int64_t, AVRational, AVRational]
+av_write_frame = _libraries['libavformat.so'].av_write_frame
+av_write_frame.restype = c_int
+av_write_frame.argtypes = [POINTER(AVFormatContext), POINTER(AVPacket)]
+sws_getCachedContext = _libraries['libswscale.so'].sws_getCachedContext
+sws_getCachedContext.restype = POINTER(SwsContext)
+sws_getCachedContext.argtypes = [POINTER(SwsContext), c_int, c_int, AVPixelFormat, c_int, c_int, AVPixelFormat, c_int, POINTER(SwsFilter), POINTER(SwsFilter), POINTER(c_double)]
+avcodec_free_frame = _libraries['libavcodec.so'].avcodec_free_frame
+avcodec_free_frame.restype = None
+avcodec_free_frame.argtypes = [POINTER(POINTER(AVFrame))]
