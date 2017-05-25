@@ -4,14 +4,6 @@
 1. Reads only QR codes
 2. Configuration is in `src/config.ini`, docker image `/root/qr-scanner/config.ini`
 
-###### Requirements ######
-- Python (2.7)
-- libav 9 (Ubuntu 14.04 repo)
-- libzbar-dev (Ubuntu 14.04 repo)
-- avpy (pip)
-- zbar (pip)
-- Pillow (pip)
-
 ###### Run ######
 1. `python qr-scanner streamAddress [timeout_in_seconds] [writeDebug]`
 
