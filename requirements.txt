@@ -1,4 +1,5 @@
-avpy == 0.1.1
-zbar == 0.10
+avpy == 0.1.3
+zbar-py == 1.0.4
 Pillow == 3.4.1
--e git+https://bitbucket.org/angelcam/logger.git#egg=logger
+requests == 2.14.2
+git+https://bitbucket.org/angelcam/logger.git#egg=logger

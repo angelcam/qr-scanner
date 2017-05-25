@@ -26,7 +26,7 @@ writeDebug         | Will set debug logging level and will write logs to stdout,
 
 ###### Outputs ######
 1. In case of success:
-    1. decoded QR codes, one per line
+    1. decoded QR codes, one per line, ends with \r\n\r\n
     2. stdout will contain "Timeout." after end of program
 2. In case of error:
     1. decoded QR codes, one per line
