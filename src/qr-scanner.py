@@ -20,6 +20,8 @@ def main():
     #configure logging
     log.start("qr-scanner")
     log.set_min_level(config.LOG_LEVEL)
+
+    #adjust logs according to input arguments
     if(len(sys.argv) >= 4):
         if(sys.argv[3].lower() == "writedebug"):
             log.set_output_writing(True)
@@ -29,6 +31,8 @@ def main():
             print("main: Unknown last parameter.")
     else:
         avpy.av.lib.av_log_set_level(avpy.av.lib.AV_LOG_QUIET)
+        if config.LOG_LOGGLY_TOKEN:
+            log.set_loggly(config.LOG_LOGGLY_TOKEN, "qr-scanner")
 
     log.info("main: Start of main. Arguments: " + str(sys.argv))
 
