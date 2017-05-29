@@ -15,7 +15,7 @@ writeDebug         | Will set debug logging level and will write logs to stdout,
 ###### Run in docker ######
 `docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60`
 
-- debug version:
+- debug mode for local testing (this will turn off logging to loggly, set log level to debug and write all logs to stdout):
 
 `docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60 writeDebug`
 
