@@ -45,14 +45,14 @@ class Demuxer(object):
             if(self.timeout_signal):
                  log.error("Demuxer.start: Could not open input. Timeout. " + str(config.DEMUXER_TIMEOUT_OPEN_INPUT) + "s.")
             else:
-                log.error("Demuxer.start: Could not open input. Ffmpeg error: " + str(avpy.avMedia.avError(ret)))
+                log.error("Demuxer.start: Could not open input. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
             self._ctxLock.release()
             self._run.clear()
             return False
 
         ret = avpy.av.lib.avformat_find_stream_info(self._inFormatCtx, None)
         if(ret < 0):
-            log.error("Demuxer.start: Failed to obtain input stream information of address. Ffmpeg error: " + str(avpy.avMedia.avError(ret)))
+            log.error("Demuxer.start: Failed to obtain input stream information of address. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
             self._ctxLock.release()
             self._run.clear()
             return False
@@ -116,7 +116,7 @@ class Demuxer(object):
             if(self.timeout_signal):
                 log.error("Demuxer.read: Cannot read packet. Timeout. " + str(config.DEMUXER_TIMEOUT_READ_FRAME) + "s.")
             elif(self._run.is_set()):
-                log.error("Demuxer.read: Cannot read packet. Ffmpeg error: " + str(avpy.avMedia.avError(ret)))
+                log.error("Demuxer.read: Cannot read packet. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
             avpy.av.lib.av_free_packet(ctypes.byref(packet))
             self._ctxLock.release()
             return None

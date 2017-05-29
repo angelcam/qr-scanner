@@ -33,6 +33,6 @@ class CodeReader(object):
 
         outputData = []
         for symbol in scanResults:
-            outputData.append(symbol.data)
+            outputData.append(symbol.data.decode())
 
         return outputData
