@@ -1,9 +1,10 @@
 import re
 
 def cam_id_from_url(url):
-    searchRes = re.search(".+/([0-9]+)/.+", url)
+    # counts number of '/' https:// xxx / yyy / stream_id [/?] ...
+    found = re.findall(".+//(?:[^/]+/){2}([^/?]+).*", url)
 
-    if(searchRes != None and len(searchRes.groups()) == 1):
-        return searchRes.groups(0)[0]
+    if(found != None and len(found) == 1):
+        return found[0]
     else:
         return None
