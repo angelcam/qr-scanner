@@ -68,11 +68,11 @@ def main():
     if(scanner.is_running()):
         scanner.stop()
 
+    # we need to collect scanner before end of program or zbar module can cause crash
+    del scanner
+
     log.info("END of main.")
     return not ret
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
