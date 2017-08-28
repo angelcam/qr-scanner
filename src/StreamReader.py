@@ -1,7 +1,7 @@
 import avpy
 import ctypes
 import threading
-import Queue
+import queue
 import time
 
 from Logger import log
@@ -21,7 +21,7 @@ class StreamReader(object):
         #reader - thread
         self._thread = None
         self._run = threading.Event()
-        self._packetQueue = Queue.Queue(config.MAX_PACKETS)
+        self._packetQueue = queue.Queue(config.MAX_PACKETS)
 
     def start(self):
         log.debug("StreamReader.start: Starting streamReader.")
@@ -85,7 +85,7 @@ class StreamReader(object):
 
         try:
             self._lastPck = self._packetQueue.get(True, 1.0)
-        except Queue.Empty:
+        except queue.Empty:
             return False
 
         if(self._lastFrame):
@@ -117,14 +117,23 @@ class StreamReader(object):
     def _stop(self):
         while(not self._packetQueue.empty()):
             self._packetQueue.get()
+
         self._demuxer.stop()
         self._decoder.stop()
+
         if(self._swsCtx != None):
             avpy.av.lib.sws_freeContext(self._swsCtx)
             self._swsCtx = None
+
         if(self._swsFrame != None):
             avpy.av.lib.avcodec_free_frame(self._swsFrame)
             self._swsFrame = None
+
+        if (self._lastFrame != None):
+            avpy.av.lib.avcodec_free_frame(self._lastFrame)
+            self._lastFrame = None
+
+        self._lastPck = None
 
     def _start(self):
 
@@ -137,7 +146,7 @@ class StreamReader(object):
             #create sws context
             width = self._decoder.codecCtx.contents.width
             height = self._decoder.codecCtx.contents.height
-            outPixFmt = avpy.av.lib.PIX_FMT_GRAY8
+            outPixFmt = avpy.av.lib.AV_PIX_FMT_GRAY8
 
             #prepare output resolution
             widthOut, heightOut = self._output_resolution(width, height)

@@ -4,14 +4,6 @@
 1. Reads only QR codes
 2. Configuration is in `src/config.ini`, docker image `/root/qr-scanner/config.ini`
 
-###### Requirements ######
-- Python (2.7)
-- libav 9 (Ubuntu 14.04 repo)
-- libzbar-dev (Ubuntu 14.04 repo)
-- avpy (pip)
-- zbar (pip)
-- Pillow (pip)
-
 ###### Run ######
 1. `python qr-scanner streamAddress [timeout_in_seconds] [writeDebug]`
 
@@ -23,7 +15,7 @@ writeDebug         | Will set debug logging level and will write logs to stdout,
 ###### Run in docker ######
 `docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60`
 
-- debug version:
+- debug mode for local testing (this will turn off logging to loggly, set log level to debug and write all logs to stdout):
 
 `docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60 writeDebug`
 
@@ -34,7 +26,7 @@ writeDebug         | Will set debug logging level and will write logs to stdout,
 
 ###### Outputs ######
 1. In case of success:
-    1. decoded QR codes, one per line
+    1. decoded QR codes, one per line, ends with \r\n\r\n
     2. stdout will contain "Timeout." after end of program
 2. In case of error:
     1. decoded QR codes, one per line
