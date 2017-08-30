@@ -19,7 +19,14 @@ class CodeReader(object):
 
         outputData = self._read(image)
 
-        if(len(outputData) > 0):
+        flipped = np.fliplr(image)
+
+        # XXX: this is needed to overcome a bug in zbar-py
+        flipped = np.ascontiguousarray(flipped)
+
+        outputData += self._read(flipped)
+
+        if outputData:
             for code in outputData:
                 log.debug("Found QR code: " + str(code))
         else:

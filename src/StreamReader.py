@@ -100,7 +100,7 @@ class StreamReader(object):
 
     def get_out_frame(self):
 
-        if(not self._lastFrame):
+        if not (self._lastFrame and self._swsFrame):
             return None
 
         #transform last frame to swsFrame (decoder output AVFrame -> desired paraemters AVframe)
