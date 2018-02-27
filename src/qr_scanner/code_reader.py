@@ -1,15 +1,14 @@
 import ctypes
 import numpy as np
-
 import zbar
-from Logger import log
 
 
 class CodeReader(object):
-    def __init__(self):
+    def __init__(self, logger):
         config = [('ZBAR_NONE', 'ZBAR_CFG_ENABLE', 0),
                   ('ZBAR_QRCODE', 'ZBAR_CFG_ENABLE', 1)]
         self._scanner = zbar.Scanner(config)
+        self._logger = logger
 
     def read(self, avFrame):
 
@@ -28,13 +27,13 @@ class CodeReader(object):
 
         if outputData:
             for code in outputData:
-                log.debug("Found QR code: " + str(code))
+                self._logger.debug("Found QR code: " + str(code))
         else:
-            log.debug("QR code not found.")
+            self._logger.debug("QR code not found.")
 
         return outputData
 
-    #takes Image and returns list of detected strings
+    # takes Image and returns list of detected strings
     def _read(self, image):
         scanResults = self._scanner.scan(image)
 

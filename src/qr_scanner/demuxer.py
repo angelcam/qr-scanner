@@ -3,13 +3,11 @@ import ctypes
 import threading
 import time
 
-import config
-import PacketWrapper
-from Logger import log
+from qr_scanner import config, packet_wrapper
 
 
 class Demuxer(object):
-    def __init__(self, address):
+    def __init__(self, address, logger):
         self._inFormatCtx = None
         self._ctxLock = threading.Lock()
         self._run = threading.Event()
@@ -17,23 +15,23 @@ class Demuxer(object):
         self._timeoutCB = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p)(self._timeout_check)
         self._timeout_time = None
         self._videoStreamId = None
-
+        self._logger = logger
         self.timeout_signal = False
 
     def start(self):
-        log.debug("Demuxer.start: Connecting to source.")
+        self._logger.debug("Demuxer.start: Connecting to source.")
 
         self._run.set()
 
         self._ctxLock.acquire()
         self._inFormatCtx = avpy.av.lib.avformat_alloc_context()
-        if(not self._inFormatCtx):
-            log.error("Demuxer.start: Cannot alloc input format context.")
+        if (not self._inFormatCtx):
+            self._logger.error("Demuxer.start: Cannot alloc input format context.")
             self._ctxLock.release()
             self._run.clear()
             return False
 
-        #set timeout check callback
+        # set timeout check callback
         interruptStruct = avpy.av.lib.AVIOInterruptCB()
         interruptStruct.callback = self._timeoutCB
         interruptStruct.opaque = None
@@ -41,55 +39,58 @@ class Demuxer(object):
 
         self._set_timeout(config.DEMUXER_TIMEOUT_OPEN_INPUT)
         ret = avpy.av.lib.avformat_open_input(ctypes.byref(self._inFormatCtx), self._address.encode(), None, None)
-        if(ret < 0):
-            if(self.timeout_signal):
-                 log.error("Demuxer.start: Could not open input. Timeout. " + str(config.DEMUXER_TIMEOUT_OPEN_INPUT) + "s.")
+        if (ret < 0):
+            if (self.timeout_signal):
+                self._logger.error(
+                    "Demuxer.start: Could not open input. Timeout. " + str(config.DEMUXER_TIMEOUT_OPEN_INPUT) + "s.")
             else:
-                log.error("Demuxer.start: Could not open input. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
+                self._logger.error("Demuxer.start: Could not open input. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
             self._ctxLock.release()
             self._run.clear()
             return False
 
         ret = avpy.av.lib.avformat_find_stream_info(self._inFormatCtx, None)
-        if(ret < 0):
-            log.error("Demuxer.start: Failed to obtain input stream information of address. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
+        if (ret < 0):
+            self._logger.error(
+                "Demuxer.start: Failed to obtain input stream information of address. Ffmpeg error: " + avpy.avMedia.avError(
+                    ret).decode())
             self._ctxLock.release()
             self._run.clear()
             return False
 
-        #set video stream id
+        # set video stream id
         self._videoStreamId = None
         for i in range(self._inFormatCtx.contents.nb_streams):
-            if(self._inFormatCtx.contents.streams[i].contents.codec.contents.codec_type == avpy.av.lib.AVMEDIA_TYPE_VIDEO):
+            if (self._inFormatCtx.contents.streams[
+                i].contents.codec.contents.codec_type == avpy.av.lib.AVMEDIA_TYPE_VIDEO):
                 self._videoStreamId = i
                 break
 
         self._ctxLock.release()
 
         if self._videoStreamId != None:
-            log.info("Demuxer.start: Demuxer started.")
+            self._logger.info("Demuxer.start: Demuxer started.")
             return True
         else:
-            log.info("Demuxer.start: Cannot find video substream. Stream has no video substream or is corrupted.")
+            self._logger.info("Demuxer.start: Cannot find video substream. Stream has no video substream or is corrupted.")
             return False
 
-
     def stop(self):
-        if(not self._run.is_set()):
+        if (not self._run.is_set()):
             return
 
-        log.debug("Demuxer.stop: Stopping demuxer.")
+        self._logger.debug("Demuxer.stop: Stopping demuxer.")
 
-        #stop actually running read
+        # stop actually running read
         self._run.clear()
 
-        #release context
+        # release context
         self._ctxLock.acquire()
-        if(self._inFormatCtx):
+        if (self._inFormatCtx):
             avpy.av.lib.avformat_close_input(ctypes.byref(self._inFormatCtx))
             self._inFormatCtx = None
         self._ctxLock.release()
-        log.info("Demuxer.stop: Demuxer stopped.")
+        self._logger.info("Demuxer.stop: Demuxer stopped.")
 
     def get_context(self):
         return (self._ctxLock, self._inFormatCtx)
@@ -97,35 +98,35 @@ class Demuxer(object):
     def get_video_stream_id(self):
         return self._videoStreamId
 
-    #Is it necessary alloc new packets all the time?
+    # Is it necessary alloc new packets all the time?
     def read(self):
 
         packet = avpy.av.lib.AVPacket()
         packetRef = ctypes.byref(packet)
 
         self._ctxLock.acquire()
-        if(not self._run.is_set()):
+        if (not self._run.is_set()):
             self._ctxLock.release()
             return None
 
-        #set timeout
+        # set timeout
         self._set_timeout(config.DEMUXER_TIMEOUT_READ_FRAME)
         ret = avpy.av.lib.av_read_frame(self._inFormatCtx, packetRef)
 
-        if(ret != 0):
-            if(self.timeout_signal):
-                log.error("Demuxer.read: Cannot read packet. Timeout. " + str(config.DEMUXER_TIMEOUT_READ_FRAME) + "s.")
-            elif(self._run.is_set()):
-                log.error("Demuxer.read: Cannot read packet. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
+        if (ret != 0):
+            if (self.timeout_signal):
+                self._logger.error("Demuxer.read: Cannot read packet. Timeout. " + str(config.DEMUXER_TIMEOUT_READ_FRAME) + "s.")
+            elif (self._run.is_set()):
+                self._logger.error("Demuxer.read: Cannot read packet. Ffmpeg error: " + avpy.avMedia.avError(ret).decode())
             avpy.av.lib.av_free_packet(ctypes.byref(packet))
             self._ctxLock.release()
             return None
 
-        wrap = PacketWrapper.PacketWrapper(packet)
+        wrap = packet_wrapper.PacketWrapper(packet, self._logger)
         wrap.calculate_dts_time(self._inFormatCtx)
         self._ctxLock.release()
 
-        #release original packet
+        # release original packet
         avpy.av.lib.av_free_packet(ctypes.byref(packet))
 
         return wrap
@@ -134,13 +135,13 @@ class Demuxer(object):
         self._timeout_time = time.time() + timeS
         self.timeout_signal = False
 
-    #timeout check return 0 to continue, return 1 to stop blocking function
+    # timeout check return 0 to continue, return 1 to stop blocking function
     def _timeout_check(self, context):
 
-        if(not self._run.is_set()):
+        if (not self._run.is_set()):
             return 1
 
-        if(time.time() > self._timeout_time):
+        if (time.time() > self._timeout_time):
             self.timeout_signal = True
             return 1
         else:

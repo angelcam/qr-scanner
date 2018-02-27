@@ -1,4 +1,4 @@
-from utils import cam_id_from_url
+from qr_scanner.utils import cam_id_from_url
 
 
 def test_cam_id_from_url():

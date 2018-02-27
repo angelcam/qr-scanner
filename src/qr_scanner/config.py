@@ -1,12 +1,7 @@
-#Configuraiton file
-import logger
-
+import logging
 
 # default minimal log level
-LOG_LEVEL = logger.INFO
-
-# loggly token
-LOG_LOGGLY_TOKEN = '07e7166c-bd6d-459d-8cd0-4bd4333f04fb'
+LOG_LEVEL = logging.INFO
 
 # default job timeout length
 TIMEOUT_S = 60

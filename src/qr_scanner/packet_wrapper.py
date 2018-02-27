@@ -1,15 +1,16 @@
 import avpy
 import ctypes
 
-from Logger import log
 
 AV_PKT_FLAG_KEY = 0x0001
 
+
 class PacketWrapper(object):
-    def __init__(self, pyavPacket):
+    def __init__(self, pyavPacket, logger):
         self.pkt = self._copy(pyavPacket)
         self.preprocessed = False
         self.dtsTime = None
+        self._logger = logger
 
     def __del__(self):
         avpy.av.lib.av_free_packet(ctypes.byref(self.pkt))
@@ -32,7 +33,7 @@ class PacketWrapper(object):
         newPktRef = ctypes.byref(newPkt)
         ret = avpy.av.lib.av_new_packet(newPktRef, oldPkt.size)
         if(ret != 0):
-            log.warn("PacketWrapper._copy: Cannot create new packet.")
+            self._logger.warning("PacketWrapper._copy: Cannot create new packet.")
 
         #copy fields
         newPkt.pts = oldPkt.pts

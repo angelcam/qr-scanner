@@ -25,15 +25,13 @@ RUN wget http://ffmpeg.org/releases/ffmpeg-2.8.11.tar.xz \
 RUN mkdir /root/tmp/
 ADD . /root/tmp/qr-scanner/
 
-# install python requirements fix avpy ffmpeg detection and install ff28.py patch
-RUN pip3 install --upgrade -r /root/tmp/qr-scanner/requirements.txt \
+# install qr-scanner, fix avpy ffmpeg detection and install ff28.py patch
+RUN pip3 install /root/tmp/qr-scanner/ \
  && sed -i s/if\ libswresample\ and\ os\.path\.exists\(libswresample\):/if\ libswresample:/g /usr/local/lib/python3.5/dist-packages/avpy/av.py \
  && cp /root/tmp/qr-scanner/src/avpy/ff28.py /usr/local/lib/python3.5/dist-packages/avpy/version/
 
-# install qr-scanner
+# move example qr-scanner.py for testing purposis
 RUN mkdir /root/qr-scanner \
- && cp /root/tmp/qr-scanner/src/*.py /root/qr-scanner/
+ && cp /root/tmp/qr-scanner/src/examples/hello_world.py /root/qr-scanner/
 
-# run command
 WORKDIR /root/qr-scanner
-ENTRYPOINT ["python3", "-u", "qr-scanner.py"]

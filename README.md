@@ -2,35 +2,20 @@
 
 ###### Notes ######
 1. Reads only QR codes
-2. Configuration is in `src/config.ini`, docker image `/root/qr-scanner/config.ini`
+2. Configuration is in `src/config.py`, docker image `/root/qr-scanner/config.py`
 
-###### Run ######
-1. `python qr-scanner streamAddress [timeout_in_seconds] [writeDebug]`
+###### Use ######
+See hello_world in examples
+
+###### Run for testing ######
+1. `python3 hello_world.py [-h] [-t TIMEOUT] [-d] url
+`
 
 Parameter          | Description
 ------------------ | -------------
-timeout_in_seconds | Length of run of program. Connection time is included. If ommited, default value will be used (1 minute)
-writeDebug         | Will set debug logging level and will write logs to stdout, must be second parameter
-
-###### Run in docker ######
-`docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60`
-
-- debug mode for local testing (this will turn off logging to loggly, set log level to debug and write all logs to stdout):
-
-`docker run angelcam/arrow-qr-scanner:latest http://e2-eu1.angelcam.com/m2-eu1/10807/playlist-cra.m3u8 60 writeDebug`
-
-
-###### Behavior notes ######
-- program will run whole timeout_in_seconds and write all detected QR codes
-- every detected code is written only once
-
-###### Outputs ######
-1. In case of success:
-    1. decoded QR codes, one per line, ends with \r\n\r\n
-    2. stdout will contain "Timeout." after end of program
-2. In case of error:
-    1. decoded QR codes, one per line
-    2. stderr will contain "Timeout. XXX", where XXX is error message
+url         | stream url
+-t TIMEOUT | Length of run of program. Connection time is included. If ommited, default value will be used (60 seconds)
+-d         | Will set debug logging level and will write logs to stdout
 
 
 ###### Error messages ######
