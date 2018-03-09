@@ -7,7 +7,7 @@ setup(
     keywords="QR",
     author="Angelcam",
     author_email="dev@angelcam.com",
-    url="https://bitbucket.org/angelcam/arrow-qr-scanner",
+    url="https://bitbucket.org/angelcam/qr-scanner",
     license="MIT",
     long_description=open('README.md').read(),
     install_requires=[

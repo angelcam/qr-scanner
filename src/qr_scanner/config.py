@@ -1,8 +1,3 @@
-import logging
-
-# default minimal log level
-LOG_LEVEL = logging.INFO
-
 # default job timeout length
 TIMEOUT_S = 60
 

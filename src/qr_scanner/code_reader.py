@@ -1,14 +1,16 @@
 import ctypes
 import numpy as np
+import logging
 import zbar
+
+logger = logging.getLogger(__name__)
 
 
 class CodeReader(object):
-    def __init__(self, logger):
+    def __init__(self):
         config = [('ZBAR_NONE', 'ZBAR_CFG_ENABLE', 0),
                   ('ZBAR_QRCODE', 'ZBAR_CFG_ENABLE', 1)]
         self._scanner = zbar.Scanner(config)
-        self._logger = logger
 
     def read(self, avFrame):
 
@@ -27,9 +29,9 @@ class CodeReader(object):
 
         if outputData:
             for code in outputData:
-                self._logger.debug("Found QR code: " + str(code))
+                logger.debug("Found QR code: " + str(code))
         else:
-            self._logger.debug("QR code not found.")
+            logger.debug("QR code not found.")
 
         return outputData
 
