@@ -3,15 +3,18 @@ import sys
 import time
 import threading
 import avpy
+import logging
 
 from qr_scanner import config, stream_reader, code_reader
 
 SCANNER_STATE_CONNECT = 0
 SCANNER_STATE_READ = 1
 
+logger = logging.getLogger(__name__)
+
 
 class Scanner(object):
-    def __init__(self, streamAddress, logger, timeout=None):
+    def __init__(self, streamAddress, timeout=None):
 
         avpy.av.lib.av_register_all()
         avpy.av.lib.avcodec_register_all()
@@ -19,23 +22,22 @@ class Scanner(object):
 
         self._timeout = timeout or config.TIMEOUT_S
         self._streamAddress = streamAddress
-        self._streamReader = stream_reader.StreamReader(self._streamAddress, logger)
-        self._codeReader = code_reader.CodeReader(logger)
+        self._streamReader = stream_reader.StreamReader(self._streamAddress)
+        self._codeReader = code_reader.CodeReader()
         self._foundCodes = set()
         self._run = threading.Event()
-        self._logger = logger
 
         # frame skipping
         self._lastDtsTime = None
         self._lastScanLen = None
 
     def start(self):
-        self._logger.debug("Scanner.start: Starting scanner.")
+        logger.debug("Scanner.start: Starting scanner.")
         self._run.set()
         return self._main_loop()
 
     def stop(self):
-        self._logger.debug("Scanner.stop: Stopping scanner.")
+        logger.debug("Scanner.stop: Stopping scanner.")
         self._run.clear()
 
     def is_running(self):
@@ -46,7 +48,7 @@ class Scanner(object):
         return self._foundCodes
 
     def _main_loop(self):
-        self._logger.debug("Scanner._main_loop: Scanner started.")
+        logger.debug("Scanner._main_loop: Scanner started.")
         self._run.set()
         startTime = time.time()
 
@@ -57,10 +59,10 @@ class Scanner(object):
         while (time.time() - startTime < self._timeout and self._run.is_set()):
 
             if (state == SCANNER_STATE_CONNECT):
-                self._logger.debug("Scanner._main_loop: State SCANNER_STATE_CONNECT.")
+                logger.debug("Scanner._main_loop: State SCANNER_STATE_CONNECT.")
                 self._streamReader.start()
                 state = SCANNER_STATE_READ
-                self._logger.debug("Scanner._main_loop: Connecting to stream ... ")
+                logger.debug("Scanner._main_loop: Connecting to stream ... ")
 
             elif (state == SCANNER_STATE_READ):
 
@@ -70,7 +72,7 @@ class Scanner(object):
                     # read frame
                     outFrame = self._streamReader.get_out_frame()
                     if (not outFrame):
-                        self._logger.debug("Scanner._main_loop: Cannot get ouput frame.", extra={'misc': 'frameI={}'.format(frameI)})
+                        logger.debug("Scanner._main_loop: Cannot get ouput frame.", extra={'misc': 'frameI={}'.format(frameI)})
                         continue
 
                     frame, dtsTime = outFrame
@@ -88,13 +90,13 @@ class Scanner(object):
                                 continue
 
                     if (skippedCount > 0):
-                        self._logger.debug("Scanner._main_loop: Skipped " + str(skippedCount) + " frames: ")
+                        logger.debug("Scanner._main_loop: Skipped " + str(skippedCount) + " frames: ")
 
                     skippedCount = 0
                     self._lastDtsTime = dtsTime
 
                     frameI += 1
-                    self._logger.debug("Scanner._main_loop: State SCANNER_STATE_READ.", extra={'misc': 'frameI={}'.format(frameI)})
+                    logger.debug("Scanner._main_loop: State SCANNER_STATE_READ.", extra={'misc': 'frameI={}'.format(frameI)})
 
                     self._lastScanLen = time.time()
                     codes = self._codeReader.read(frame)
@@ -108,7 +110,7 @@ class Scanner(object):
                             self._foundCodes.add(code)
                             yield code
             else:
-                self._logger.debug("Scanner._main_loop: Unkdnown state.")
+                logger.debug("Scanner._main_loop: Unkdnown state.")
                 self._streamReader.stop()
                 time.sleep(1)
                 state = SCANNER_STATE_CONNECT
@@ -121,7 +123,7 @@ class Scanner(object):
             if (len(self._foundCodes) > 0):
                 sys.stdout.write("Timeout.\r\n")
                 sys.stdout.flush()
-                self._logger.info("Timeout.")
+                logger.info("Timeout.")
             else:
                 # bad states
                 if (frameI == 0):
@@ -132,17 +134,17 @@ class Scanner(object):
                 else:
                     errMessage = "Timeout. Could not find or decode qr code (code not in stream)."
 
-                self._logger.error(errMessage)
+                logger.error(errMessage)
                 sys.stderr.write(errMessage + "\n")
                 sys.stderr.flush()
         else:
             # Ended by signal?
-            self._logger.info("Scanner._main_loop: Scanning interrupted before timeout.")
+            logger.info("Scanner._main_loop: Scanning interrupted before timeout.")
             sys.stderr.write("Scanning interrupted before timeout.\n")
             sys.stderr.flush()
 
         # clean after yourself
         self._streamReader.stop()
 
-        self._logger.debug("Scanner.stop: Scanner stopped")
+        logger.debug("Scanner.stop: Scanner stopped")
         return (len(self._foundCodes) > 0)

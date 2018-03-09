@@ -3,19 +3,21 @@ import ctypes
 import threading
 import queue
 import time
+import logging
 
 from qr_scanner import config, demuxer, decoder
 
+logger = logging.getLogger(__name__)
+
 
 class StreamReader(object):
-    def __init__(self, address, logger):
-        self._demuxer = demuxer.Demuxer(address, logger)
-        self._decoder = decoder.Decoder(logger)
+    def __init__(self, address):
+        self._demuxer = demuxer.Demuxer(address)
+        self._decoder = decoder.Decoder()
         self._lastPck = None
         self._lastFrame = None
         self._swsCtx = None
         self._swsFrame = None
-        self._logger = logger
 
         # reader - thread
         self._thread = None
@@ -23,18 +25,18 @@ class StreamReader(object):
         self._packetQueue = queue.Queue(config.MAX_PACKETS)
 
     def start(self):
-        self._logger.debug("StreamReader.start: Starting streamReader.")
+        logger.debug("StreamReader.start: Starting streamReader.")
         self._run.set()
         self._thread = threading.Thread(target=self.main_loop)
         self._thread.setDaemon(True)
         self._thread.start()
-        self._logger.info("StreamReader.start: StreamReader started.")
+        logger.info("StreamReader.start: StreamReader started.")
 
     def stop(self):
         if (not self._run.is_set()):
             return
 
-        self._logger.debug("StreamReader.stop: Stopping streamReader.")
+        logger.debug("StreamReader.stop: Stopping streamReader.")
         # stop thread
         self._run.clear()
 
@@ -47,7 +49,7 @@ class StreamReader(object):
 
         # release memory
         self._stop()
-        self._logger.debug("StreamReader.stop: StreamReader stopped ")
+        logger.debug("StreamReader.stop: StreamReader stopped ")
 
     def main_loop(self):
 
@@ -64,7 +66,7 @@ class StreamReader(object):
 
                 # should program countinue? Or jump to while and stop?
                 if (self._run.is_set()):
-                    self._logger.warning("StreamReader.main_loop: Cannot read packet. Restarting demuxer, decoder.")
+                    logger.warning("StreamReader.main_loop: Cannot read packet. Restarting demuxer, decoder.")
                     self._stop()
                     while (self._run.is_set() and not self._start()):
                         self._stop()
@@ -77,7 +79,7 @@ class StreamReader(object):
             try:
                 self._packetQueue.put(packet, False)
             except queue.Full:
-                self._logger.debug("StreamReader.main_loop: Reading of input is too fast. Packet buffer is full.")
+                logger.debug("StreamReader.main_loop: Reading of input is too fast. Packet buffer is full.")
                 continue
 
     def try_decode(self):
@@ -137,7 +139,7 @@ class StreamReader(object):
     def _start(self):
 
         if (not self._demuxer.start()):
-            self._logger.debug("Decoder.start: Cannot start demuxer.")
+            logger.debug("Decoder.start: Cannot start demuxer.")
             return False
 
         if (self._decoder.start(self._demuxer.get_context(), self._demuxer.get_video_stream_id())):
@@ -165,12 +167,12 @@ class StreamReader(object):
                 None)
 
             if (not self._swsCtx):
-                self._logger.debug("Decoder.start: Cannot create sws context.")
+                logger.debug("Decoder.start: Cannot create sws context.")
                 return False
 
             self._swsFrame = avpy.av.lib.avcodec_alloc_frame()
             if (not self._swsFrame):
-                self._logger.debug("Decoder.start: Cannot create sws frame.")
+                logger.debug("Decoder.start: Cannot create sws frame.")
                 return False
 
             avpy.av.lib.avpicture_alloc(

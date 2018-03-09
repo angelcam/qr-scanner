@@ -1,15 +1,17 @@
 import avpy
 import ctypes
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Decoder(object):
-    def __init__(self, logger):
+    def __init__(self):
         self.codecCtx = None
         self._insertedCounter = 0
-        self._logger = logger
 
     def start(self, inFormatContextWrap, videoSId):
-        self._logger.debug("Decoder.start: Starting decoder.")
+        logger.debug("Decoder.start: Starting decoder.")
         self._insertedCounter = 0
 
         contextLock, inFormatCtx = inFormatContextWrap
@@ -20,7 +22,7 @@ class Decoder(object):
         self.codecCtx = inStream.contents.codec
         decoder = avpy.av.lib.avcodec_find_decoder(inStream.contents.codec.contents.codec_id)
         if (not decoder):
-            self._logger.warning(
+            logger.warning(
                 "Decoder.start: Could not find decoder for codec ID: %d" % inStream.contents.codec.contents.codec_id)
             return False
 
@@ -29,19 +31,19 @@ class Decoder(object):
 
         ret = avpy.av.lib.avcodec_open2(self.codecCtx, decoder, None)
         if (ret != 0):
-            self._logger.warning("Decoder.start: Cannot open decoder.")
+            logger.warning("Decoder.start: Cannot open decoder.")
             return False
 
         contextLock.release()
-        self._logger.debug("Decoder.start: Decoder started.")
+        logger.debug("Decoder.start: Decoder started.")
         return True
 
     # codec context is from input - demuxer = do not free
     # frame is allocated in codec buffer = do not free
     def stop(self):
-        self._logger.debug("Decoder.stop: Stopping decoder.")
+        logger.debug("Decoder.stop: Stopping decoder.")
         self.codecCtx = None
-        self._logger.debug("Decoder.stop: Decoder stopped.")
+        logger.debug("Decoder.stop: Decoder stopped.")
 
     # frame is allocated in codec buffer = do not free
     def decode(self, packetWrap):
@@ -59,7 +61,7 @@ class Decoder(object):
         decodedRef = ctypes.byref(decoded)
         ret = avpy.av.lib.avcodec_decode_video2(self.codecCtx, frame, decodedRef, pktRef)
         if (ret <= 0):
-            self._logger.warning("Decoder.decode: Cannot decode packet. error: " + str(ret))
+            logger.warning("Decoder.decode: Cannot decode packet. error: " + str(ret))
             avpy.av.lib.avcodec_free_frame(ctypes.byref(frame))
             return None
         if (decoded.value == 0):
