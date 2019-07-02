@@ -2,12 +2,12 @@ from distutils.core import setup
 
 setup(
     name="qr-scanner",
-    version='0.9',
+    version='1.0',
     description="QR scanner",
     keywords="QR",
     author="Angelcam",
     author_email="dev@angelcam.com",
-    url="https://bitbucket.org/angelcam/qr-scanner",
+    url="https://github.com/angelcam/qr-scanner",
     license="MIT",
     long_description=open('README.md').read(),
     install_requires=[
@@ -18,5 +18,5 @@ setup(
         'pytest >= 3.1.0',
     ],
     packages=['qr_scanner'],
-    package_dir={'qr_scanner': 'src/qr_scanner'},
+    package_dir={'qr_scanner': 'qr_scanner'},
 )

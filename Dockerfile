@@ -1,13 +1,13 @@
 # Dockerfile for qr-scanner
 
 # take clean ubuntu - 64bit is default
-FROM ubuntu:16.04
+FROM python:3.7
 
 MAINTAINER Martin Dobrovolny <martin@angelcam.com>
 
 # install necessary libraries
 RUN apt-get update \
- && apt-get install -y git python3 python3-pip python3-dev git wget build-essential yasm libx264-dev libzbar-dev openssl libssl-dev \
+ && apt-get install -y git python3 python3-pip python3-dev git wget build-essential yasm libx264-dev libzbar-dev openssl libssl1.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # install ffmpeg and clean it (to make docker image smaller)
@@ -27,8 +27,8 @@ ADD . /root/tmp/qr-scanner/
 
 # install qr-scanner, fix avpy ffmpeg detection and install ff28.py patch
 RUN pip3 install /root/tmp/qr-scanner/ \
- && sed -i s/if\ libswresample\ and\ os\.path\.exists\(libswresample\):/if\ libswresample:/g /usr/local/lib/python3.5/dist-packages/avpy/av.py \
- && cp /root/tmp/qr-scanner/src/avpy/ff28.py /usr/local/lib/python3.5/dist-packages/avpy/version/
+ && sed -i s/if\ libswresample\ and\ os\.path\.exists\(libswresample\):/if\ libswresample:/g /usr/local/lib/python3.7/site-packages/avpy/av.py \
+ && cp /root/tmp/qr-scanner/src/avpy/ff28.py /usr/local/lib/python3.7/site-packages/avpy/version/
 
 # move example qr-scanner.py for testing purposis
 RUN mkdir /root/qr-scanner \
