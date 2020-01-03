@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="qr-scanner",
-    version='0.9',
+    version='0.9.1',
     description="QR scanner",
     keywords="QR",
     author="Angelcam",
