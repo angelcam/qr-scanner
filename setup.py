@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name="qr-scanner",
@@ -18,5 +18,5 @@ setup(
         'pytest >= 3.1.0',
     ],
     packages=['qr_scanner'],
-    package_dir={'qr_scanner': 'src/qr_scanner'},
+    package_dir={'': 'src'},
 )
