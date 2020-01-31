@@ -106,8 +106,7 @@ lib = QRScannerLibrary()
 class NativeObject:
     """
     Abstraction over a native object. The memory will be released automatically
-    by garbage collector if a free_func is given and the underlying raw pointer
-    hasn't been transferred using the into_raw_ptr() method.
+    by garbage collector if a free_func is given.
     """
 
     def __init__(self, raw_ptr: c_void_p, free_func=None):
