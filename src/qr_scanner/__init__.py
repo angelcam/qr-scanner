@@ -1,1 +1,0 @@
-from qr_scanner.qr_scanner import scan

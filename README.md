@@ -1,27 +1,22 @@
-# QR SCANNER for Arrow v2 #
+# QR code scanner
 
-###### Notes ######
-1. Reads only QR codes
-2. Configuration is in `src/config.py`, docker image `/root/qr-scanner/config.py`
+The library is just a thin wrapper over the Rust `qr_scanner`. It allows
+scanning QR codes from video streams delivered via HTTP(S). Please note
+that the whole stream must be encapsulated within one HTTP response body.
+Video streams delivered in multiple HTTP responses (such as HLS) won't work
+with the scanner.
 
-###### Use ######
-See hello_world in examples
+## Installation
 
-###### Run for testing ######
-1. `python3 hello_world.py [-h] [-t TIMEOUT] [-d] url
-`
+The wrapper expect `libqr_scanner.so` to be present in the system. You
+can get it by building the corresponding Rust library and installing it
+into the system.
 
-Parameter          | Description
------------------- | -------------
-url         | stream url
--t TIMEOUT | Length of run of program. Connection time is included. If ommited, default value will be used (60 seconds)
--d         | Will set debug logging level and will write logs to stdout
+## Usage
 
+```python
+import qr_scanner
 
-###### Error messages ######
-Error                                                    | Description
----------------------------------------------------------| -------------
-Timeout. Could not connect to stream (demuxing problem). | scanner couldn't connect to stream | posssible cause: bad address, totally broken stream
-Timeout. Could not read or decode packets (corrupted stream). | scanner connected to stream, but couldn't decode even one frame | broken stream, no keyframes
-Timeout. Could not find or decode qr code (code not in stream). | scanner decoded some frames from stream, but couldn't find QR code in them | QR code is too far from camera, too small, bent, blurry, out of camera field of view or bad lightning conditions
-main: description of problem with arguments | scanner cannot parse input parameters
+for code in qr_scanner.scan('https://my.domain/video.mp4', 20):
+    print(code.decode('utf-8'))
+```
