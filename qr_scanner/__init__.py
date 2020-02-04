@@ -1,11 +1,11 @@
-import threading
 import ctypes
 import ctypes.util
 import logging
 import sys
+import threading
 
 from abc import ABC
-from ctypes import c_char_p, c_int, c_size_t, c_uint8, c_uint64, c_void_p, CDLL, CFUNCTYPE, POINTER
+from ctypes import CDLL, CFUNCTYPE, POINTER, c_char_p, c_int, c_size_t, c_uint8, c_uint64, c_void_p
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -74,30 +74,27 @@ class QRScannerLibrary(Library):
                 return
             file = file.decode('utf-8')
             msg = msg.decode('utf-8')
-            logger.debug(msg, extra={
-                'file': '{}:{}'.format(file, line),
-            })
+            logger.debug(msg, extra={'file': '{}:{}'.format(file, line),})
 
         self.__log_callback = self.LOG_CALLBACK(log_callback)
 
         self.qrs__set_log_callback(self.__log_callback, None)
 
     def load_symbols(self):
-        self.load_functions((
-            ('qrs__set_log_callback', [self.LOG_CALLBACK, c_void_p]),
-
-            ('qrs__scanner_config__new', [], c_void_p),
-            ('qrs__scanner_config__free', [c_void_p]),
-            ('qrs__scanner_config__key_frames_only', [c_void_p, c_int]),
-
-            ('qrs__scanner__scan_http_stream', [c_char_p, c_uint64, c_void_p], c_void_p),
-            ('qrs__scanner__free', [c_void_p]),
-            ('qrs__scanner__next_qr_code', [c_void_p], c_void_p),
-
-            ('qrs__qr_code__free', [c_void_p]),
-            ('qrs__qr_code__get_data', [c_void_p], POINTER(c_uint8)),
-            ('qrs__qr_code__get_data_size', [c_void_p], c_size_t),
-        ))
+        self.load_functions(
+            (
+                ('qrs__set_log_callback', [self.LOG_CALLBACK, c_void_p]),
+                ('qrs__scanner_config__new', [], c_void_p),
+                ('qrs__scanner_config__free', [c_void_p]),
+                ('qrs__scanner_config__key_frames_only', [c_void_p, c_int]),
+                ('qrs__scanner__scan_http_stream', [c_char_p, c_uint64, c_void_p], c_void_p),
+                ('qrs__scanner__free', [c_void_p]),
+                ('qrs__scanner__next_qr_code', [c_void_p], c_void_p),
+                ('qrs__qr_code__free', [c_void_p]),
+                ('qrs__qr_code__get_data', [c_void_p], POINTER(c_uint8)),
+                ('qrs__qr_code__get_data_size', [c_void_p], c_size_t),
+            )
+        )
 
 
 lib = QRScannerLibrary()
@@ -135,7 +132,6 @@ class NativeObject:
 
 
 class ScannerConfig(NativeObject):
-
     def __init__(self):
         ptr = lib.qrs__scanner_config__new()
         assert ptr is not None
@@ -153,12 +149,13 @@ class ScannerConfig(NativeObject):
 
 
 class Scanner(NativeObject):
-
     def __init__(self, raw_ptr: c_void_p):
         super().__init__(raw_ptr, free_func=lib.qrs__scanner__free)
 
     @classmethod
-    def scan_http_stream(cls, url: str, stop_after: Optional[float] = None, config: Optional[ScannerConfig] = None):
+    def scan_http_stream(
+        cls, url: str, stop_after: Optional[float] = None, config: Optional[ScannerConfig] = None
+    ) -> 'Scanner':
         url = url.encode('utf-8')
         if stop_after is None:
             stop_after = 0
@@ -174,15 +171,13 @@ class Scanner(NativeObject):
         if ptr is None:
             return None
 
-        try:
-            data_ptr = lib.qrs__qr_code__get_data(ptr)
-            data_size = lib.qrs__qr_code__get_data_size(ptr)
+        data_ptr = lib.qrs__qr_code__get_data(ptr)
+        data_size = lib.qrs__qr_code__get_data_size(ptr)
 
-            data = bytes(ctypes.string_at(data_ptr, data_size))
+        try:
+            return bytes(ctypes.string_at(data_ptr, data_size))
         finally:
             lib.qrs__qr_code__free(ptr)
-
-        return data
 
 
 class ScannerError(Exception):
@@ -208,9 +203,6 @@ def scan(stream_url: str, timeout: Optional[float] = None, log_extra: Optional[d
                 discovered.add(code)
                 yield code
     except ScannerError as e:
-        logger.error("Scanner exited with error", extra={
-            'cause': str(e),
-            **log_extra,
-        })
+        logger.error("Scanner exited with error", extra={'cause': str(e), **log_extra,})
     finally:
         logger.info("Scanning ended", extra=log_extra)
