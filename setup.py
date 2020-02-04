@@ -2,21 +2,14 @@ from setuptools import setup
 
 setup(
     name="qr-scanner",
-    version='0.9.1',
-    description="QR scanner",
+    version='0.10.0',
+    description="QR code scanner",
     keywords="QR",
-    author="Angelcam",
+    author="Angelcam, Inc.",
     author_email="dev@angelcam.com",
-    url="https://bitbucket.org/angelcam/qr-scanner",
+    url="https://github.com/angelcam/qr-scanner",
     license="MIT",
     long_description=open('README.md').read(),
-    install_requires=[
-        'avpy == 0.1.3',
-        'zbar-py == 1.0.4',
-        'Pillow >= 3.4.1',
-        'requests >= 2.14.2',
-        'pytest >= 3.1.0',
-    ],
-    packages=['qr_scanner'],
-    package_dir={'': 'src'},
+    install_requires=[],
+    packages=['qr_scanner']
 )
